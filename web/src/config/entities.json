@@ -1,0 +1,407 @@
+{
+  "entities": [
+    {
+      "table": "leads",
+      "label": "Leads",
+      "titleField": "lead_name",
+      "columns": [
+        {
+          "name": "lead_name",
+          "label": "Lead Name",
+          "type": "text"
+        },
+        {
+          "name": "email",
+          "label": "Email",
+          "type": "text"
+        },
+        {
+          "name": "phone",
+          "label": "Phone",
+          "type": "text"
+        },
+        {
+          "name": "source_2",
+          "label": "Source",
+          "type": "text"
+        },
+        {
+          "name": "set_by",
+          "label": "Set By",
+          "type": "text"
+        },
+        {
+          "name": "date_added",
+          "label": "Date Added",
+          "type": "date"
+        },
+        {
+          "name": "created_at",
+          "label": "Created",
+          "type": "datetime"
+        }
+      ],
+      "relations": [
+        {
+          "kind": "hasMany",
+          "label": "Bookings",
+          "table": "bookings",
+          "fk": "lead_id"
+        }
+      ]
+    },
+    {
+      "table": "bookings",
+      "label": "Bookings",
+      "titleField": "booking_id",
+      "columns": [
+        {
+          "name": "booking_id",
+          "label": "Booking ID",
+          "type": "text"
+        },
+        {
+          "name": "start_time",
+          "label": "Start Time",
+          "type": "datetime"
+        },
+        {
+          "name": "status",
+          "label": "Status",
+          "type": "text"
+        },
+        {
+          "name": "showed_up",
+          "label": "Showed Up?",
+          "type": "boolean"
+        },
+        {
+          "name": "closed",
+          "label": "Closed?",
+          "type": "boolean"
+        },
+        {
+          "name": "cash_collected",
+          "label": "Cash Collected",
+          "type": "number"
+        },
+        {
+          "name": "revenue_generated",
+          "label": "Revenue Generated",
+          "type": "number"
+        },
+        {
+          "name": "notes",
+          "label": "Notes",
+          "type": "text"
+        },
+        {
+          "name": "day_key",
+          "label": "Day Key",
+          "type": "text"
+        },
+        {
+          "name": "week_key",
+          "label": "Week Key",
+          "type": "text"
+        },
+        {
+          "name": "sales_reps",
+          "label": "Sales Reps",
+          "type": "text"
+        },
+        {
+          "name": "form_link",
+          "label": "Form Link",
+          "type": "text"
+        },
+        {
+          "name": "objection",
+          "label": "Objection",
+          "type": "text"
+        },
+        {
+          "name": "fathom_link",
+          "label": "Fathom Link",
+          "type": "text"
+        },
+        {
+          "name": "email_from_email",
+          "label": "Email (from Email)",
+          "type": "json"
+        },
+        {
+          "name": "email_calendly",
+          "label": "Email - Calendly",
+          "type": "text"
+        },
+        {
+          "name": "created_at",
+          "label": "Created",
+          "type": "datetime"
+        }
+      ],
+      "relations": [
+        {
+          "kind": "belongsTo",
+          "label": "Lead Name",
+          "table": "leads",
+          "fk": "lead_id"
+        },
+        {
+          "kind": "belongsTo",
+          "label": "Set By",
+          "table": "sales_reps",
+          "fk": "set_by_id"
+        },
+        {
+          "kind": "belongsTo",
+          "label": "Closer",
+          "table": "sales_reps",
+          "fk": "closer_id"
+        },
+        {
+          "kind": "hasMany",
+          "label": "Transactions",
+          "table": "transactions",
+          "fk": "booking_id"
+        }
+      ]
+    },
+    {
+      "table": "sales_reps",
+      "label": "Sales Reps",
+      "titleField": "rep_name",
+      "columns": [
+        {
+          "name": "rep_name",
+          "label": "Rep Name",
+          "type": "text"
+        },
+        {
+          "name": "email",
+          "label": "Email",
+          "type": "text"
+        },
+        {
+          "name": "role",
+          "label": "Role",
+          "type": "text"
+        },
+        {
+          "name": "set",
+          "label": "Set %",
+          "type": "number"
+        },
+        {
+          "name": "close",
+          "label": "Close %",
+          "type": "number"
+        },
+        {
+          "name": "set_by",
+          "label": "Set By",
+          "type": "number"
+        },
+        {
+          "name": "calls_on_cal",
+          "label": "Calls On Cal",
+          "type": "number"
+        },
+        {
+          "name": "created_at",
+          "label": "Created",
+          "type": "datetime"
+        }
+      ],
+      "relations": [
+        {
+          "kind": "hasMany",
+          "label": "Bookings",
+          "table": "bookings",
+          "fk": "set_by_id"
+        },
+        {
+          "kind": "hasMany",
+          "label": "Bookings",
+          "table": "bookings",
+          "fk": "closer_id"
+        },
+        {
+          "kind": "hasMany",
+          "label": "Setter EOD report",
+          "table": "setter_eod_report",
+          "fk": "sales_rep_id"
+        }
+      ]
+    },
+    {
+      "table": "transactions",
+      "label": "Transactions",
+      "titleField": "transaction_id",
+      "columns": [
+        {
+          "name": "transaction_id",
+          "label": "Transaction ID",
+          "type": "text"
+        },
+        {
+          "name": "amount",
+          "label": "Amount",
+          "type": "number"
+        },
+        {
+          "name": "date",
+          "label": "Date",
+          "type": "date"
+        },
+        {
+          "name": "status",
+          "label": "Status",
+          "type": "text"
+        },
+        {
+          "name": "set_by",
+          "label": "Set By",
+          "type": "json"
+        },
+        {
+          "name": "closed_by",
+          "label": "Closed By",
+          "type": "json"
+        },
+        {
+          "name": "setter_commission",
+          "label": "Setter Commission",
+          "type": "number"
+        },
+        {
+          "name": "closer_commission",
+          "label": "Closer Commission",
+          "type": "number"
+        },
+        {
+          "name": "day_key",
+          "label": "Day Key",
+          "type": "date"
+        },
+        {
+          "name": "week_key",
+          "label": "Week Key",
+          "type": "datetime"
+        },
+        {
+          "name": "created_at",
+          "label": "Created",
+          "type": "datetime"
+        }
+      ],
+      "relations": [
+        {
+          "kind": "belongsTo",
+          "label": "Booking",
+          "table": "bookings",
+          "fk": "booking_id"
+        }
+      ]
+    },
+    {
+      "table": "emails",
+      "label": "Emails",
+      "titleField": "campaign_name",
+      "columns": [
+        {
+          "name": "campaign_name",
+          "label": "Campaign Name",
+          "type": "text"
+        },
+        {
+          "name": "send_date",
+          "label": "Send Date",
+          "type": "date"
+        },
+        {
+          "name": "recipients",
+          "label": "Recipients",
+          "type": "number"
+        },
+        {
+          "name": "open_rate",
+          "label": "Open Rate",
+          "type": "number"
+        },
+        {
+          "name": "click_rate",
+          "label": "Click Rate",
+          "type": "number"
+        },
+        {
+          "name": "created_at",
+          "label": "Created",
+          "type": "datetime"
+        }
+      ],
+      "relations": []
+    },
+    {
+      "table": "setter_eod_report",
+      "label": "Setter EOD report",
+      "titleField": "eod_report_name",
+      "columns": [
+        {
+          "name": "eod_report_name",
+          "label": "EOD Report Name",
+          "type": "text"
+        },
+        {
+          "name": "date",
+          "label": "Date",
+          "type": "date"
+        },
+        {
+          "name": "dials",
+          "label": "Dials",
+          "type": "number"
+        },
+        {
+          "name": "pickups",
+          "label": "Pickups",
+          "type": "number"
+        },
+        {
+          "name": "conversations",
+          "label": "Conversations",
+          "type": "number"
+        },
+        {
+          "name": "booked_calls",
+          "label": "Booked Calls",
+          "type": "number"
+        },
+        {
+          "name": "cash_collected",
+          "label": "Cash collected",
+          "type": "number"
+        },
+        {
+          "name": "revenue_generated",
+          "label": "Revenue generated",
+          "type": "number"
+        },
+        {
+          "name": "created_at",
+          "label": "Created",
+          "type": "datetime"
+        }
+      ],
+      "relations": [
+        {
+          "kind": "belongsTo",
+          "label": "Sales Rep",
+          "table": "sales_reps",
+          "fk": "sales_rep_id"
+        }
+      ]
+    }
+  ]
+}

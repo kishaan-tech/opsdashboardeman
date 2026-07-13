@@ -1,0 +1,33 @@
+{
+  "_comment": "Hand-tuning applied on top of the Airtable schema. Keys are Airtable names ('Table.Field'). Decisions from 2026-07-13 review with Kishaan.",
+
+  "skipTables": ["Table 1", "Metrics"],
+
+  "skipFields": ["Leads.Bookings 2", "Bookings.Email"],
+
+  "forceFk": [
+    "Bookings.Lead Name",
+    "Bookings.Set By",
+    "Bookings.Closer",
+    "Transactions.Booking"
+  ],
+
+  "renameFields": {
+    "Bookings.Lead Name": "Lead"
+  },
+
+  "mergeTables": [
+    {
+      "from": "Table 1",
+      "into": "leads",
+      "fieldMap": {
+        "Lead Name": "lead_name",
+        "Email": "email",
+        "Phone": "phone",
+        "Lead Source": "source_2",
+        "Opt in Date": "date_added"
+      },
+      "dedupeBy": ["email", "lead_name"]
+    }
+  ]
+}

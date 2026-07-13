@@ -1,0 +1,460 @@
+{
+  "tables": [
+    {
+      "airtableId": "tbll8yWpqJH9Opmqd",
+      "airtableName": "Leads",
+      "pgName": "leads",
+      "titleField": "lead_name",
+      "columns": [
+        {
+          "airtableName": "Lead Name",
+          "airtableId": "fldcUrJn2biV9f0nQ",
+          "pgName": "lead_name",
+          "pgType": "text",
+          "airtableType": "singleLineText"
+        },
+        {
+          "airtableName": "Email",
+          "airtableId": "fldwLWZ8J3zA6eZKf",
+          "pgName": "email",
+          "pgType": "text",
+          "airtableType": "email"
+        },
+        {
+          "airtableName": "Phone",
+          "airtableId": "fldUTBhm6AdCfyHtY",
+          "pgName": "phone",
+          "pgType": "text",
+          "airtableType": "phoneNumber"
+        },
+        {
+          "airtableName": "Source",
+          "airtableId": "fldhHAuNLjVWPWXyp",
+          "pgName": "source_2",
+          "pgType": "text",
+          "airtableType": "singleSelect"
+        },
+        {
+          "airtableName": "Set By",
+          "airtableId": "fldjpvB3DvSmNiNe2",
+          "pgName": "set_by",
+          "pgType": "text",
+          "airtableType": "singleSelect"
+        },
+        {
+          "airtableName": "Date Added",
+          "airtableId": "fldJHW7WgFhZ59MQi",
+          "pgName": "date_added",
+          "pgType": "date",
+          "airtableType": "date"
+        }
+      ],
+      "links": []
+    },
+    {
+      "airtableId": "tblqw5v3Nl4bTdtAs",
+      "airtableName": "Bookings",
+      "pgName": "bookings",
+      "titleField": "booking_id",
+      "columns": [
+        {
+          "airtableName": "Booking ID",
+          "airtableId": "fldB1vlqMkM81b2S3",
+          "pgName": "booking_id",
+          "pgType": "text",
+          "airtableType": "formula"
+        },
+        {
+          "airtableName": "Start Time",
+          "airtableId": "fldvpoCtzrBbXWII9",
+          "pgName": "start_time",
+          "pgType": "timestamptz",
+          "airtableType": "dateTime"
+        },
+        {
+          "airtableName": "Status",
+          "airtableId": "fldnw9eoc3rk6YcHO",
+          "pgName": "status",
+          "pgType": "text",
+          "airtableType": "singleSelect"
+        },
+        {
+          "airtableName": "Showed Up?",
+          "airtableId": "fldEbDOkKlOGCSthA",
+          "pgName": "showed_up",
+          "pgType": "boolean",
+          "airtableType": "checkbox"
+        },
+        {
+          "airtableName": "Closed?",
+          "airtableId": "fld8szH1Av7PoDC1j",
+          "pgName": "closed",
+          "pgType": "boolean",
+          "airtableType": "checkbox"
+        },
+        {
+          "airtableName": "Cash Collected",
+          "airtableId": "fldUOGHPCH8Q6EMH7",
+          "pgName": "cash_collected",
+          "pgType": "numeric(12,2)",
+          "airtableType": "currency"
+        },
+        {
+          "airtableName": "Revenue Generated",
+          "airtableId": "fldif1jBUSA1EkEHB",
+          "pgName": "revenue_generated",
+          "pgType": "numeric(12,2)",
+          "airtableType": "currency"
+        },
+        {
+          "airtableName": "Notes",
+          "airtableId": "fldiUqNt1FurM4h38",
+          "pgName": "notes",
+          "pgType": "text",
+          "airtableType": "multilineText"
+        },
+        {
+          "airtableName": "Day Key",
+          "airtableId": "fldffcR3JvvkqVFtq",
+          "pgName": "day_key",
+          "pgType": "text",
+          "airtableType": "formula"
+        },
+        {
+          "airtableName": "Week Key",
+          "airtableId": "fldqr4kTwoyNtVLFa",
+          "pgName": "week_key",
+          "pgType": "text",
+          "airtableType": "formula"
+        },
+        {
+          "airtableName": "Sales Reps",
+          "airtableId": "fldoimcxhGRDHw6oR",
+          "pgName": "sales_reps",
+          "pgType": "text",
+          "airtableType": "singleLineText"
+        },
+        {
+          "airtableName": "Form Link",
+          "airtableId": "fldDs8J3KSqE6nNVZ",
+          "pgName": "form_link",
+          "pgType": "text",
+          "airtableType": "formula"
+        },
+        {
+          "airtableName": "Objection",
+          "airtableId": "fldbIL3KzdK7tkM7J",
+          "pgName": "objection",
+          "pgType": "text",
+          "airtableType": "singleSelect"
+        },
+        {
+          "airtableName": "Fathom Link",
+          "airtableId": "fldatEp9H0j5rK8SJ",
+          "pgName": "fathom_link",
+          "pgType": "text",
+          "airtableType": "url"
+        },
+        {
+          "airtableName": "Email (from Email)",
+          "airtableId": "fldHZs8OcahuzFhQh",
+          "pgName": "email_from_email",
+          "pgType": "jsonb",
+          "airtableType": "multipleLookupValues"
+        },
+        {
+          "airtableName": "Email - Calendly",
+          "airtableId": "fldRoCXIQu39bFY8L",
+          "pgName": "email_calendly",
+          "pgType": "text",
+          "airtableType": "singleLineText"
+        }
+      ],
+      "links": [
+        {
+          "airtableName": "Lead Name",
+          "airtableId": "fldWt8QckA7aLGA02",
+          "kind": "fk",
+          "pgColumn": "lead_id",
+          "targetTable": "leads"
+        },
+        {
+          "airtableName": "Set By",
+          "airtableId": "fldmV2yp4PZv1pv2O",
+          "kind": "fk",
+          "pgColumn": "set_by_id",
+          "targetTable": "sales_reps"
+        },
+        {
+          "airtableName": "Closer",
+          "airtableId": "fldbhrofkiyjdFeMH",
+          "kind": "fk",
+          "pgColumn": "closer_id",
+          "targetTable": "sales_reps"
+        }
+      ]
+    },
+    {
+      "airtableId": "tbl46DRpFRf0hyiW4",
+      "airtableName": "Sales Reps",
+      "pgName": "sales_reps",
+      "titleField": "rep_name",
+      "columns": [
+        {
+          "airtableName": "Rep Name",
+          "airtableId": "fldBRdwTHtTz7VN9v",
+          "pgName": "rep_name",
+          "pgType": "text",
+          "airtableType": "multilineText"
+        },
+        {
+          "airtableName": "Email",
+          "airtableId": "fld9BA3PTYf4my3sJ",
+          "pgName": "email",
+          "pgType": "text",
+          "airtableType": "email"
+        },
+        {
+          "airtableName": "Role",
+          "airtableId": "fld8q9P36XpkRZIH0",
+          "pgName": "role",
+          "pgType": "text",
+          "airtableType": "singleSelect"
+        },
+        {
+          "airtableName": "Set %",
+          "airtableId": "fldvIGiCJVoHRqxvZ",
+          "pgName": "set",
+          "pgType": "numeric",
+          "airtableType": "percent"
+        },
+        {
+          "airtableName": "Close %",
+          "airtableId": "fldCbMhcx2fyhZgxc",
+          "pgName": "close",
+          "pgType": "numeric",
+          "airtableType": "percent"
+        },
+        {
+          "airtableName": "Set By",
+          "airtableId": "fldtZ9DcXtkn3ImAH",
+          "pgName": "set_by",
+          "pgType": "integer",
+          "airtableType": "count"
+        },
+        {
+          "airtableName": "Calls On Cal",
+          "airtableId": "fldOa18hLS8SnHMgF",
+          "pgName": "calls_on_cal",
+          "pgType": "integer",
+          "airtableType": "count"
+        }
+      ],
+      "links": []
+    },
+    {
+      "airtableId": "tbltVxgXSRnVUNrbc",
+      "airtableName": "Transactions",
+      "pgName": "transactions",
+      "titleField": "transaction_id",
+      "columns": [
+        {
+          "airtableName": "Transaction ID",
+          "airtableId": "fldIQNlE1UyVIRxdS",
+          "pgName": "transaction_id",
+          "pgType": "text",
+          "airtableType": "multilineText"
+        },
+        {
+          "airtableName": "Amount",
+          "airtableId": "fldcbvUG4BHa1FNQD",
+          "pgName": "amount",
+          "pgType": "numeric(12,2)",
+          "airtableType": "currency"
+        },
+        {
+          "airtableName": "Date",
+          "airtableId": "fldTsCERI41v2zE4v",
+          "pgName": "date",
+          "pgType": "date",
+          "airtableType": "date"
+        },
+        {
+          "airtableName": "Status",
+          "airtableId": "fldgbJZaJ9D19cce6",
+          "pgName": "status",
+          "pgType": "text",
+          "airtableType": "singleSelect"
+        },
+        {
+          "airtableName": "Set By",
+          "airtableId": "fldxvX2cfrcR40P9d",
+          "pgName": "set_by",
+          "pgType": "jsonb",
+          "airtableType": "multipleLookupValues"
+        },
+        {
+          "airtableName": "Closed By",
+          "airtableId": "fldDcpDj0EqvBJY7Y",
+          "pgName": "closed_by",
+          "pgType": "jsonb",
+          "airtableType": "multipleLookupValues"
+        },
+        {
+          "airtableName": "Setter Commission",
+          "airtableId": "fldC6xKlRRCtjl1bx",
+          "pgName": "setter_commission",
+          "pgType": "numeric",
+          "airtableType": "formula"
+        },
+        {
+          "airtableName": "Closer Commission",
+          "airtableId": "fldJvuELQGqhNhw5q",
+          "pgName": "closer_commission",
+          "pgType": "numeric",
+          "airtableType": "formula"
+        },
+        {
+          "airtableName": "Day Key",
+          "airtableId": "fldlgzzU2HYZGopzt",
+          "pgName": "day_key",
+          "pgType": "date",
+          "airtableType": "date"
+        },
+        {
+          "airtableName": "Week Key",
+          "airtableId": "fldATF3cu7iomfHwE",
+          "pgName": "week_key",
+          "pgType": "timestamptz",
+          "airtableType": "dateTime"
+        }
+      ],
+      "links": [
+        {
+          "airtableName": "Booking",
+          "airtableId": "fldEH54YQe15r0XBk",
+          "kind": "fk",
+          "pgColumn": "booking_id",
+          "targetTable": "bookings"
+        }
+      ]
+    },
+    {
+      "airtableId": "tblerSwGqWApyJg8S",
+      "airtableName": "Emails",
+      "pgName": "emails",
+      "titleField": "campaign_name",
+      "columns": [
+        {
+          "airtableName": "Campaign Name",
+          "airtableId": "fldc2sxUJ55EZ28M9",
+          "pgName": "campaign_name",
+          "pgType": "text",
+          "airtableType": "multilineText"
+        },
+        {
+          "airtableName": "Send Date",
+          "airtableId": "fldyJBd5Hfx7kKJFe",
+          "pgName": "send_date",
+          "pgType": "date",
+          "airtableType": "date"
+        },
+        {
+          "airtableName": "Recipients",
+          "airtableId": "fldtYvNshplpl6Qfb",
+          "pgName": "recipients",
+          "pgType": "numeric",
+          "airtableType": "number"
+        },
+        {
+          "airtableName": "Open Rate",
+          "airtableId": "fldNzW52oEz6JtOrK",
+          "pgName": "open_rate",
+          "pgType": "numeric",
+          "airtableType": "number"
+        },
+        {
+          "airtableName": "Click Rate",
+          "airtableId": "fldhC6QWSf8m5XJKw",
+          "pgName": "click_rate",
+          "pgType": "numeric",
+          "airtableType": "number"
+        }
+      ],
+      "links": []
+    },
+    {
+      "airtableId": "tbl0Jzjt5wCVMSKAY",
+      "airtableName": "Setter EOD report",
+      "pgName": "setter_eod_report",
+      "titleField": "eod_report_name",
+      "columns": [
+        {
+          "airtableName": "EOD Report Name",
+          "airtableId": "fldt6TNrZnjnbm45c",
+          "pgName": "eod_report_name",
+          "pgType": "text",
+          "airtableType": "singleLineText"
+        },
+        {
+          "airtableName": "Date",
+          "airtableId": "fld73tXvhCenxAVM0",
+          "pgName": "date",
+          "pgType": "date",
+          "airtableType": "date"
+        },
+        {
+          "airtableName": "Dials",
+          "airtableId": "fldiU3iFZLc2D2bkd",
+          "pgName": "dials",
+          "pgType": "numeric",
+          "airtableType": "number"
+        },
+        {
+          "airtableName": "Pickups",
+          "airtableId": "fldEdb5doM6P2qxfv",
+          "pgName": "pickups",
+          "pgType": "numeric",
+          "airtableType": "number"
+        },
+        {
+          "airtableName": "Conversations",
+          "airtableId": "fldV76YIkNEW1lNgX",
+          "pgName": "conversations",
+          "pgType": "numeric",
+          "airtableType": "number"
+        },
+        {
+          "airtableName": "Booked Calls",
+          "airtableId": "fldLxp9gNuYtGXaG3",
+          "pgName": "booked_calls",
+          "pgType": "numeric",
+          "airtableType": "number"
+        },
+        {
+          "airtableName": "Cash collected",
+          "airtableId": "fldk9kgLYgRwKAKeF",
+          "pgName": "cash_collected",
+          "pgType": "numeric(12,2)",
+          "airtableType": "currency"
+        },
+        {
+          "airtableName": "Revenue generated",
+          "airtableId": "fldR0iUwQ57VFRjXw",
+          "pgName": "revenue_generated",
+          "pgType": "numeric(12,2)",
+          "airtableType": "currency"
+        }
+      ],
+      "links": [
+        {
+          "airtableName": "Sales Rep",
+          "airtableId": "fldBgPf6EFDVzFG2F",
+          "kind": "fk",
+          "pgColumn": "sales_rep_id",
+          "targetTable": "sales_reps"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "name": "ops-hub",
+  "private": true,
+  "workspaces": ["tools", "api", "web"],
+  "scripts": {
+    "generate-schema": "node tools/generate-schema.js",
+    "generate-schema:csv": "node tools/generate-schema-from-csv.js",
+    "migrate": "node tools/migrate-airtable.js",
+    "api": "npm run dev --workspace api",
+    "web": "npm run dev --workspace web"
+  }
+}
