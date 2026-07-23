@@ -60,6 +60,14 @@ export default function DetailPanel({ entity, row, onClose, onSaved, onDeleted }
         </button>
       </header>
 
+      {entity.table === 'bookings' && (
+        <div className="border-b border-line-soft px-4 py-3">
+          <a href={`#/post-call/${row.id}`} className="btn btn-primary inline-flex w-full justify-center text-sm">
+            Fill post-call form
+          </a>
+        </div>
+      )}
+
       <div className="flex-1 space-y-4 overflow-y-auto p-4">
         <section className="space-y-3">
           {editableColumns(entity).map((c) => (

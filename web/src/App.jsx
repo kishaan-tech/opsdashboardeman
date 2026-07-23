@@ -5,6 +5,7 @@ import EntityPage from './pages/EntityPage.jsx';
 import EventsPage from './pages/EventsPage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
 import MatchesPage from './pages/MatchesPage.jsx';
+import PostCallPage from './pages/PostCallPage.jsx';
 import Login from './pages/Login.jsx';
 
 function useHashRoute() {
@@ -18,7 +19,8 @@ function useHashRoute() {
   return {
     page: parts[0] || 'dashboard',
     table: parts[0] === 'entity' ? parts[1] ?? config.entities[0]?.table : null,
-    recordId: parts[2] === 'record' ? parts[3] : null,
+    recordId: parts[0] === 'entity' && parts[2] === 'record' ? parts[3] : null,
+    bookingId: parts[0] === 'post-call' ? parts[1] || null : null,
   };
 }
 
@@ -72,6 +74,7 @@ export default function App() {
           ))}
 
           <NavSection label="Ops" />
+          <NavLink href="#/post-call" active={route.page === 'post-call'}>Post-call form</NavLink>
           <NavLink href="#/matches" active={route.page === 'matches'}>Same person</NavLink>
           <NavLink href="#/events" active={route.page === 'events'}>Events</NavLink>
         </nav>
@@ -92,6 +95,7 @@ export default function App() {
       <main className="flex min-w-0 flex-1 flex-col py-3 pr-3">
         <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-[1.35rem] border border-line-soft bg-panel shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
           {route.page === 'dashboard' && <DashboardPage />}
+          {route.page === 'post-call' && <PostCallPage bookingId={route.bookingId} />}
           {route.page === 'matches' && <MatchesPage />}
           {route.page === 'events' && <EventsPage />}
           {route.page === 'entity' && entity && (
