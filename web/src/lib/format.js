@@ -1,5 +1,12 @@
 // Cell/value formatting shared by the table and detail panel.
 
+function stringifyShort(v) {
+  if (v === null || v === undefined) return '—';
+  if (typeof v === 'object') return JSON.stringify(v);
+  const s = String(v);
+  return s.length > 28 ? s.slice(0, 25) + '…' : s;
+}
+
 export function formatCell(value, type) {
   if (value === null || value === undefined || value === '') return '—';
   switch (type) {
@@ -8,6 +15,13 @@ export function formatCell(value, type) {
     case 'date': return new Date(value).toLocaleDateString();
     case 'number': return typeof value === 'number' ? value.toLocaleString() : String(value);
     case 'json': {
+      if (value && typeof value === 'object' && !Array.isArray(value)) {
+        const keys = Object.keys(value).filter((k) => k !== '_hidden');
+        if (keys.length) {
+          const preview = keys.slice(0, 2).map((k) => `${k}: ${stringifyShort(value[k])}`).join(' · ');
+          return keys.length > 2 ? `${preview} · +${keys.length - 2}` : preview;
+        }
+      }
       const s = JSON.stringify(value);
       return s.length > 80 ? s.slice(0, 77) + '…' : s;
     }

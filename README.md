@@ -5,9 +5,10 @@ Internal operations stack: Airtable → Supabase (Postgres) migration, direct we
 ```
 ops-hub/
 ├── supabase/migrations/   SQL migrations (core infra + your generated schema)
-├── tools/                 Schema generator + Airtable→Supabase migration script
-├── api/                   Express ingestion API (forms / bookings / payments webhooks)
-├── web/                   React + Tailwind admin UI (schema-driven, config in web/src/config/entities.json)
+├── tools/                 Schema generator, migration, webhook registration
+├── server/                Express ingestion API (forms / bookings / payments)
+├── api/                   Vercel serverless entry (wraps server/)
+├── web/                   React + Tailwind admin UI (schema-driven)
 └── data/csv/              Drop Airtable CSV exports here if not using the API
 ```
 
@@ -35,6 +36,26 @@ ops-hub/
    related-record navigation, all driven by `entities.json`. Adding a table = one new entry in that file
    (or just regenerate it).
 
+## Deploy (Vercel)
+
+One Vercel project serves the admin UI **and** the webhook API.
+
+1. Push this repo, then `npx vercel` (or Import in the Vercel dashboard).
+2. Set env vars on the project (Production):  
+   `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `WEBHOOK_SECRET`,  
+   `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`,  
+   `TYPEFORM_API_KEY`, `CALENDLY_API_KEY` (optional).
+3. Apply `supabase/migrations/0004_webhook_fields.sql` in the Supabase SQL editor (once).
+4. Point webhooks at the deployment:
+   ```bash
+   WEBHOOK_BASE_URL=https://YOUR-APP.vercel.app npm run register-webhooks
+   ```
+   Endpoints:
+   - `POST /api/webhooks/forms?source=typeform&secret=…`
+   - `POST /api/webhooks/bookings?source=calendly&secret=…`
+   - `POST /api/webhooks/payments?source=whop&secret=…`
+   - `GET  /api/health`
+
 ## Setup
 
 ### 0. Prereqs
@@ -44,7 +65,7 @@ ops-hub/
 ### 1. Configure
 ```bash
 cp .env.example .env   # then fill in the values
-npm install            # installs all workspaces (tools, api, web)
+npm install            # installs all workspaces (tools, server, web)
 ```
 
 ### 2. Core migration (always run first)
@@ -74,6 +95,8 @@ npm run api    # ingestion API on :8787
 npm run web    # admin UI on :5173
 ```
 
+Webhook URLs locally use `/webhooks/…`; on Vercel they use `/api/webhooks/…` (both work in the Express app).
+
 ## Design notes
 
 - **Every table** gets `id uuid` (PK), `airtable_id text unique` (provenance + dedup), `created_at`,
@@ -85,5 +108,5 @@ npm run web    # admin UI on :5173
 - **RLS**: enabled on all tables. Authenticated users get full access (single-operator internal tool);
   the API uses the service-role key and bypasses RLS. Tighten policies in `0001_core.sql` /
   the generated SQL if you add teammates with restricted roles.
-- **Adding a data source**: add a Zod schema in `api/src/schemas/`, a route file that calls
-  `ingest()` in `api/src/routes/`, and mount it in `server.js`. ~30 lines.
+- **Adding a data source**: add a Zod schema in `server/src/schemas/`, a route file that calls
+  `ingest()` in `server/src/routes/`, and mount it in `server/src/app.js`. ~30 lines.

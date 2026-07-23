@@ -23,7 +23,9 @@ export default function DataTable({ entity, rows, loading, selectedId, onSelect 
             className={`cursor-pointer hover:bg-neutral-50 ${selectedId === row.id ? 'bg-blue-50' : ''}`}>
             {columns.map((c) => (
               <td key={c.name} className="px-4 py-2 whitespace-nowrap max-w-64 overflow-hidden text-ellipsis">
-                {formatCell(row[c.name], c.type)}
+                {c.name === 'possible_duplicate' && row.possible_duplicate
+                  ? <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium uppercase text-amber-900">flagged</span>
+                  : formatCell(row[c.name], c.type)}
               </td>
             ))}
           </tr>

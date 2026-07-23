@@ -36,6 +36,24 @@
           "type": "date"
         },
         {
+          "name": "possible_duplicate",
+          "label": "Possible duplicate",
+          "type": "boolean",
+          "readOnly": true
+        },
+        {
+          "name": "form_answers",
+          "label": "Typeform Details",
+          "type": "json",
+          "readOnly": true
+        },
+        {
+          "name": "form_response_url",
+          "label": "Typeform Link",
+          "type": "text",
+          "readOnly": true
+        },
+        {
           "name": "created_at",
           "label": "Created",
           "type": "datetime"
@@ -53,8 +71,23 @@
     {
       "table": "bookings",
       "label": "Bookings",
-      "titleField": "booking_id",
+      "titleField": "lead_name",
       "columns": [
+        {
+          "name": "lead_name",
+          "label": "Lead Name",
+          "type": "text"
+        },
+        {
+          "name": "email",
+          "label": "Email",
+          "type": "text"
+        },
+        {
+          "name": "phone",
+          "label": "Phone",
+          "type": "text"
+        },
         {
           "name": "booking_id",
           "label": "Booking ID",
@@ -81,9 +114,39 @@
           "type": "boolean"
         },
         {
+          "name": "has_recording",
+          "label": "Recording?",
+          "type": "boolean"
+        },
+        {
+          "name": "pif",
+          "label": "PIF?",
+          "type": "boolean"
+        },
+        {
+          "name": "is_split",
+          "label": "Split?",
+          "type": "boolean"
+        },
+        {
+          "name": "closer_cancelled",
+          "label": "Closer Cancelled?",
+          "type": "boolean"
+        },
+        {
+          "name": "cash_contracted",
+          "label": "Cash Contracted",
+          "type": "number"
+        },
+        {
           "name": "cash_collected",
           "label": "Cash Collected",
           "type": "number"
+        },
+        {
+          "name": "payment_type",
+          "label": "Payment Type",
+          "type": "text"
         },
         {
           "name": "revenue_generated",
@@ -134,6 +197,12 @@
           "name": "email_calendly",
           "label": "Email - Calendly",
           "type": "text"
+        },
+        {
+          "name": "utm",
+          "label": "UTM",
+          "type": "json",
+          "readOnly": true
         },
         {
           "name": "created_at",

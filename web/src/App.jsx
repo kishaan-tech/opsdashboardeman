@@ -4,6 +4,7 @@ import config from './config/entities.json';
 import EntityPage from './pages/EntityPage.jsx';
 import EventsPage from './pages/EventsPage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
+import MatchesPage from './pages/MatchesPage.jsx';
 import Login from './pages/Login.jsx';
 
 // Tiny hash router: #/entity/<table>[/record/<id>] and #/events.
@@ -56,6 +57,7 @@ export default function App() {
             </NavLink>
           ))}
           <div className="pt-2 mt-2 border-t border-neutral-200">
+            <NavLink href="#/matches" active={route.page === 'matches'}>Same person</NavLink>
             <NavLink href="#/events" active={route.page === 'events'}>⚡ Events</NavLink>
           </div>
         </nav>
@@ -67,6 +69,7 @@ export default function App() {
       </aside>
       <main className="flex-1 overflow-hidden">
         {route.page === 'dashboard' && <DashboardPage />}
+        {route.page === 'matches' && <MatchesPage />}
         {route.page === 'events' && <EventsPage />}
         {route.page === 'entity' && entity &&
           <EntityPage key={entity.table} entity={entity} recordId={route.recordId} />}

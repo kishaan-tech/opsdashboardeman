@@ -1,0 +1,21 @@
+{
+  "enabled": true,
+  "rules": {
+    "phone": {
+      "enabled": true,
+      "confidence": "high",
+      "minDigits": 7,
+      "compareLastN": 10
+    },
+    "name": {
+      "enabled": true,
+      "confidence": "medium",
+      "minLength": 4,
+      "exactNormalized": true
+    },
+    "phone_and_name": {
+      "enabled": true,
+      "confidence": "high"
+    }
+  }
+}

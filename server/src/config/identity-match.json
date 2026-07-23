@@ -1,0 +1,30 @@
+{
+  "enabled": true,
+  "rules": {
+    "phone": {
+      "enabled": true,
+      "confidence": "high",
+      "minDigits": 7,
+      "compareLastN": 10
+    },
+    "name": {
+      "enabled": true,
+      "confidence": "medium",
+      "minLength": 4,
+      "exactNormalized": true
+    },
+    "phone_and_name": {
+      "enabled": true,
+      "confidence": "high",
+      "note": "When both phone and name match, confidence is raised to high even if name alone would be medium"
+    }
+  },
+  "ignoreNameValues": [
+    "unknown",
+    "test",
+    "n/a",
+    "na",
+    "none",
+    "asdf"
+  ]
+}

@@ -1,7 +1,6 @@
-// Zod schemas for inbound payloads. These are OUR canonical shapes — the
-// translation from each vendor's format happens in Zapier (field mapping) or
-// in the route's normalize() hook, so swapping vendors never touches the
-// ingest pipeline.
+// Zod schemas for inbound payloads. These are OUR canonical shapes — vendor
+// translation lives in api/src/lib/vendors/, so swapping vendors never touches
+// the ingest pipeline.
 
 import { z } from 'zod';
 
@@ -15,6 +14,7 @@ export const formSubmissionSchema = z.object({
   phone: z.string().optional(),
   source: z.string().optional(),             // e.g. 'typeform - vsl page'
   answers: z.record(z.unknown()).optional(),
+  form_response_url: z.string().optional(),
 });
 
 export const bookingSchema = z.object({
@@ -25,6 +25,14 @@ export const bookingSchema = z.object({
   name: z.string().optional(),
   phone: z.string().optional(),
   event_name: z.string().optional(),
+  // Calendly tracking.* — used to resolve set_by / closer against sales_reps
+  utm: z.object({
+    utm_source: z.string().nullable().optional(),
+    utm_medium: z.string().nullable().optional(),
+    utm_campaign: z.string().nullable().optional(),
+    utm_content: z.string().nullable().optional(),
+    utm_term: z.string().nullable().optional(),
+  }).optional(),
 });
 
 export const paymentSchema = z.object({

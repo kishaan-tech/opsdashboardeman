@@ -286,3 +286,295 @@ from public.bookings
 where start_time is not null
 group by 1
 order by 1 desc;
+
+
+-- ============================================================================
+-- 0004_webhook_fields.sql
+-- ============================================================================
+
+-- ============================================================================
+-- 0004_webhook_fields.sql — columns the Typeform / Calendly / Whop pipeline needs.
+-- Safe to re-run (IF NOT EXISTS).
+-- ============================================================================
+
+-- Typeform answers shown on the Leads table / detail panel
+alter table public.leads
+  add column if not exists form_answers jsonb;
+
+alter table public.leads
+  add column if not exists form_response_url text;
+
+-- Calendly tracking.* for setter / closer attribution
+alter table public.bookings
+  add column if not exists utm jsonb;
+
+comment on column public.leads.form_answers is
+  'Latest Typeform (or other form) answers keyed by question title';
+comment on column public.leads.form_response_url is
+  'Vendor deep-link to the raw form response, when available';
+comment on column public.bookings.utm is
+  'Calendly tracking UTMs: utm_source/content → set_by, utm_campaign → closer';
+
+
+-- ============================================================================
+-- 0005_booking_contact_fields.sql
+-- ============================================================================
+
+-- ============================================================================
+-- 0005_booking_contact_fields.sql — denormalized contact on bookings so the
+-- table shows lead_name / email / phone like leads (bidirectional with lead_id).
+-- Safe to re-run.
+-- ============================================================================
+
+alter table public.bookings
+  add column if not exists lead_name text;
+
+alter table public.bookings
+  add column if not exists email text;
+
+alter table public.bookings
+  add column if not exists phone text;
+
+comment on column public.bookings.lead_name is
+  'Invitee / lead display name (kept in sync with leads.lead_name)';
+comment on column public.bookings.email is
+  'Invitee / lead email (kept in sync with leads.email; email_calendly is vendor provenance)';
+comment on column public.bookings.phone is
+  'Invitee / lead phone (kept in sync with leads.phone)';
+
+-- Backfill from linked leads + legacy email_calendly
+update public.bookings b
+set
+  email     = coalesce(b.email, b.email_calendly, l.email),
+  lead_name = coalesce(b.lead_name, l.lead_name),
+  phone     = coalesce(b.phone, l.phone)
+from public.leads l
+where b.lead_id = l.id
+  and (
+    b.email is null
+    or b.lead_name is null
+    or b.phone is null
+  );
+
+-- Bookings with email_calendly but no lead_id still get an email
+update public.bookings
+set email = coalesce(email, email_calendly)
+where email is null and email_calendly is not null;
+
+
+-- ============================================================================
+-- 0006_identity_matches.sql
+-- ============================================================================
+
+-- ============================================================================
+-- 0006_identity_matches.sql — flag leads that look like the same person across
+-- different emails (shared phone and/or name). Safe to re-run.
+-- ============================================================================
+
+alter table public.leads
+  add column if not exists possible_duplicate boolean not null default false;
+
+create table if not exists public.identity_matches (
+  id            uuid primary key default gen_random_uuid(),
+  lead_a_id     uuid not null references public.leads (id) on delete cascade,
+  lead_b_id     uuid not null references public.leads (id) on delete cascade,
+  match_on      text[] not null default '{}',
+  confidence    text not null default 'medium'
+                check (confidence in ('high', 'medium', 'low')),
+  status        text not null default 'open'
+                check (status in ('open', 'confirmed', 'dismissed')),
+  details       jsonb not null default '{}'::jsonb,
+  created_at    timestamptz not null default now(),
+  updated_at    timestamptz not null default now(),
+  check (lead_a_id <> lead_b_id),
+  check (lead_a_id < lead_b_id)
+);
+
+create unique index if not exists identity_matches_pair_uidx
+  on public.identity_matches (lead_a_id, lead_b_id);
+
+create index if not exists identity_matches_status_idx
+  on public.identity_matches (status, confidence, created_at desc);
+
+create index if not exists identity_matches_lead_a_idx on public.identity_matches (lead_a_id);
+create index if not exists identity_matches_lead_b_idx on public.identity_matches (lead_b_id);
+
+drop trigger if exists identity_matches_set_updated_at on public.identity_matches;
+create trigger identity_matches_set_updated_at
+  before update on public.identity_matches
+  for each row execute function public.set_updated_at();
+
+alter table public.identity_matches enable row level security;
+drop policy if exists "authenticated full access" on public.identity_matches;
+create policy "authenticated full access" on public.identity_matches
+  for all to authenticated using (true) with check (true);
+
+comment on table public.identity_matches is
+  'Possible same-person pairs across different emails (matched on phone/name)';
+comment on column public.leads.possible_duplicate is
+  'True when this lead has at least one open identity_matches row';
+
+-- Keep leads.possible_duplicate in sync with open matches
+create or replace function public.refresh_lead_duplicate_flags(p_lead_ids uuid[])
+returns void language plpgsql as $$
+begin
+  update public.leads l
+  set possible_duplicate = exists (
+    select 1 from public.identity_matches m
+    where m.status = 'open'
+      and (m.lead_a_id = l.id or m.lead_b_id = l.id)
+  )
+  where l.id = any(p_lead_ids);
+end $$;
+
+
+-- ============================================================================
+-- 0007_sales_stats_fields.sql
+-- ============================================================================
+
+-- ============================================================================
+-- 0007_sales_stats_fields.sql — raw fields needed to track Overview KPIs
+-- (Booked Calls, Recordings, Show-Ups, Now Closed, PIFs, Splits, Cash
+-- Contracted / Collected, Closer Cancelled). Rates & $/call are derived in
+-- the sales_overview_stats view — never store those.
+-- Safe to re-run.
+-- ============================================================================
+
+-- Recordings: explicit flag (also backfilled from fathom_link)
+alter table public.bookings
+  add column if not exists has_recording boolean not null default false;
+
+-- Paid in full (vs deposit / payment plan)
+alter table public.bookings
+  add column if not exists pif boolean not null default false;
+
+-- Split deal (multiple payers / shared close)
+alter table public.bookings
+  add column if not exists is_split boolean not null default false;
+
+-- Contracted deal size (may differ from cash actually collected)
+alter table public.bookings
+  add column if not exists cash_contracted numeric(12,2);
+
+-- Closer-side cancel (distinct from invitee/lead cancel in status)
+alter table public.bookings
+  add column if not exists closer_cancelled boolean not null default false;
+
+-- Optional payment shape for reporting
+alter table public.bookings
+  add column if not exists payment_type text;
+  -- expected values: 'pif' | 'deposit' | 'split' | null
+
+comment on column public.bookings.has_recording is
+  'True when a call recording exists (Fathom or other)';
+comment on column public.bookings.pif is
+  'Paid in full';
+comment on column public.bookings.is_split is
+  'Split / shared close';
+comment on column public.bookings.cash_contracted is
+  'Contracted cash amount (deal size); cash_collected is money received';
+comment on column public.bookings.closer_cancelled is
+  'Cancelled by closer (feeds Closer Cancelled / % KPIs)';
+comment on column public.bookings.payment_type is
+  'pif | deposit | split';
+
+-- Backfills from existing data
+update public.bookings
+set has_recording = true
+where coalesce(has_recording, false) = false
+  and fathom_link is not null
+  and length(trim(fathom_link)) > 0;
+
+update public.bookings
+set closer_cancelled = true
+where coalesce(closer_cancelled, false) = false
+  and lower(coalesce(status, '')) in (
+    'canceled', 'cancelled', 'closer cancelled', 'closer canceled'
+  );
+
+update public.bookings
+set cash_contracted = revenue_generated
+where cash_contracted is null
+  and revenue_generated is not null;
+
+update public.bookings
+set pif = true,
+    payment_type = coalesce(payment_type, 'pif')
+where coalesce(pif, false) = false
+  and cash_collected is not null
+  and cash_contracted is not null
+  and cash_collected >= cash_contracted
+  and cash_contracted > 0;
+
+update public.bookings
+set payment_type = 'split'
+where is_split = true
+  and payment_type is null;
+
+-- Live Overview KPIs (filter by start_time in the app / a date CTE as needed)
+create or replace view public.sales_overview_stats
+  with (security_invoker = true) as
+select
+  count(*) filter (
+    where start_time is not null
+      and coalesce(closer_cancelled, false) = false
+      and lower(coalesce(status, '')) not in ('canceled', 'cancelled')
+  )                                                                   as booked_calls,
+  count(*) filter (
+    where has_recording
+       or (fathom_link is not null and length(trim(fathom_link)) > 0)
+  )                                                                   as recordings,
+  count(*) filter (where showed_up)                                   as show_ups,
+  count(*) filter (where closed)                                      as now_closed,
+  count(*) filter (where pif)                                         as pifs,
+  count(*) filter (where is_split)                                    as splits_count,
+  coalesce(sum(cash_contracted), 0)                                   as cash_contracted,
+  coalesce(sum(cash_collected), 0)                                    as new_cash_collected,
+  count(*) filter (where closer_cancelled)                            as closer_cancelled,
+  round(
+    100.0 * count(*) filter (where closer_cancelled)
+      / nullif(count(*) filter (where start_time is not null), 0)
+  , 1)                                                                as closer_cancelled_pct,
+  -- Show-up rate: shows / past non-canceled bookings (excl. future)
+  round(
+    100.0 * count(*) filter (where showed_up)
+      / nullif(
+        count(*) filter (
+          where start_time is not null
+            and start_time < now()
+            and coalesce(closer_cancelled, false) = false
+            and lower(coalesce(status, '')) not in ('canceled', 'cancelled')
+        ), 0)
+  , 1)                                                                as show_up_rate,
+  -- Book to close %: closes / booked (non-canceled)
+  round(
+    100.0 * count(*) filter (where closed)
+      / nullif(
+        count(*) filter (
+          where start_time is not null
+            and coalesce(closer_cancelled, false) = false
+            and lower(coalesce(status, '')) not in ('canceled', 'cancelled')
+        ), 0)
+  , 1)                                                                as book_to_close_pct,
+  round(
+    coalesce(sum(cash_collected), 0)
+      / nullif(
+        count(*) filter (
+          where start_time is not null
+            and coalesce(closer_cancelled, false) = false
+            and lower(coalesce(status, '')) not in ('canceled', 'cancelled')
+        ), 0)
+  , 0)                                                                as cash_per_booked_call,
+  -- "Appt" = showed up
+  round(
+    coalesce(sum(cash_collected), 0)
+      / nullif(count(*) filter (where showed_up), 0)
+  , 0)                                                                as cash_per_appt,
+  round(
+    coalesce(sum(cash_contracted), 0)
+      / nullif(count(*) filter (where showed_up), 0)
+  , 0)                                                                as cash_contracted_per_appt
+from public.bookings;
+
+comment on view public.sales_overview_stats is
+  'Overview KPI rollup matching the sales dashboard (counts + derived rates)';

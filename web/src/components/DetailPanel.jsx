@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase.js';
 import { parseInput, toInput } from '../lib/format.js';
 import RelatedRecords from './RelatedRecords.jsx';
+import PossibleMatches from './PossibleMatches.jsx';
 
 // Slide-over editor for one record: editable fields, read-only provenance
 // metadata, and related records across tables.
@@ -65,6 +66,17 @@ export default function DetailPanel({ entity, row, onClose, onSaved, onDeleted }
           ))}
         </section>
 
+        {/* Typeform / UTM read-only blocks */}
+        {row.form_answers && typeof row.form_answers === 'object' && (
+          <AnswersBlock title="Typeform details" data={row.form_answers} link={row.form_response_url} />
+        )}
+        {row.utm && typeof row.utm === 'object' && (
+          <AnswersBlock title="UTM / tracking" data={row.utm} />
+        )}
+
+        {entity.table === 'leads' && <PossibleMatches leadId={row.id} />}
+        {entity.table === 'bookings' && row.lead_id && <PossibleMatches leadId={row.lead_id} />}
+
         <RelatedRecords entity={entity} row={row} />
 
         {/* provenance — read-only */}
@@ -99,7 +111,36 @@ export default function DetailPanel({ entity, row, onClose, onSaved, onDeleted }
 }
 
 const editableColumns = (entity) =>
-  entity.columns.filter((c) => !['created_at', 'updated_at'].includes(c.name));
+  entity.columns.filter((c) =>
+    !c.readOnly
+    && !['created_at', 'updated_at', 'form_answers', 'form_response_url', 'utm', 'possible_duplicate'].includes(c.name));
+
+function AnswersBlock({ title, data, link }) {
+  const entries = Object.entries(data).filter(([k]) => k !== '_hidden');
+  if (!entries.length) return null;
+  return (
+    <section className="rounded border border-neutral-200 p-3 space-y-2">
+      <div className="flex items-center justify-between gap-2">
+        <h4 className="text-xs font-semibold uppercase tracking-wide text-neutral-500">{title}</h4>
+        {link && (
+          <a href={link} target="_blank" rel="noreferrer"
+            className="text-xs text-blue-600 hover:underline">Open response</a>
+        )}
+      </div>
+      <dl className="space-y-2">
+        {entries.map(([key, value]) => (
+          <div key={key}>
+            <dt className="text-xs text-neutral-400">{key}</dt>
+            <dd className="text-sm text-neutral-800 break-words">
+              {value === null || value === undefined ? '—'
+                : typeof value === 'object' ? JSON.stringify(value) : String(value)}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+  );
+}
 
 function Field({ column, value, onChange }) {
   const base = 'w-full rounded border border-neutral-300 px-3 py-1.5 text-sm';
