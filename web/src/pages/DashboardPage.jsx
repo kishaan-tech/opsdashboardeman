@@ -97,66 +97,83 @@ export default function DashboardPage() {
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      <header className="border-b border-neutral-200 bg-white px-6 pt-5 pb-3">
-        <h2 className="text-lg font-semibold">Dashboard</h2>
-        <div className="mt-3 flex flex-wrap items-center gap-2">
-          <div className="flex rounded border border-neutral-300 overflow-hidden">
+      <header className="border-b border-line-soft px-6 pt-6 pb-4">
+        <h2 className="text-xl font-semibold tracking-tight">Dashboard</h2>
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <div className="flex overflow-hidden rounded-xl border border-line">
             {PRESETS.map((p) => (
-              <button key={p.key} onClick={() => setPreset(p.key)}
-                className={`px-3 py-1.5 text-sm ${preset === p.key
-                  ? 'bg-neutral-900 text-white' : 'bg-white text-neutral-700 hover:bg-neutral-100'}`}>
+              <button
+                key={p.key}
+                type="button"
+                onClick={() => setPreset(p.key)}
+                className={`px-3 py-1.5 text-sm transition ${
+                  preset === p.key
+                    ? 'bg-brand text-white font-semibold'
+                    : 'bg-ink-2 text-soft hover:bg-elevated hover:text-fg'
+                }`}
+              >
                 {p.label}
               </button>
             ))}
           </div>
-          <span className="text-xs text-neutral-400">or</span>
-          <input type="date" value={customFrom}
+          <span className="text-xs text-mute">or</span>
+          <input
+            type="date"
+            value={customFrom}
             onChange={(e) => { setCustomFrom(e.target.value); setPreset('custom'); }}
-            className="rounded border border-neutral-300 px-2 py-1.5 text-sm" />
-          <span className="text-xs text-neutral-500">to</span>
-          <input type="date" value={customTo}
+            className="field w-auto"
+          />
+          <span className="text-xs text-mute">to</span>
+          <input
+            type="date"
+            value={customTo}
             onChange={(e) => { setCustomTo(e.target.value); setPreset('custom'); }}
-            className="rounded border border-neutral-300 px-2 py-1.5 text-sm" />
+            className="field w-auto"
+          />
         </div>
       </header>
 
-      <div className={`flex-1 overflow-y-auto p-6 space-y-6 ${loading ? 'opacity-60' : ''}`}>
-        {error && <div className="rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>}
+      <div className={`flex-1 space-y-6 overflow-y-auto p-6 ${loading ? 'opacity-60' : ''}`}>
+        {error && (
+          <div className="rounded-xl border border-danger/30 bg-danger/10 p-3 text-sm text-danger">
+            {error}
+          </div>
+        )}
 
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-6">
-          <Stat label="Cash collected" value={money(m.cash)} />
-          <Stat label="Bookings" value={m.total.toLocaleString()} />
-          <Stat label="Show rate" value={pct(m.showRate)} detail={`${m.shows} of ${m.total} showed`} />
-          <Stat label="Close rate" value={pct(m.closeRate)} detail={`${m.closes} of ${m.shows} shows closed`} />
-          <Stat label="Revenue generated" value={money(m.revenue)} />
-          <Stat label="Transactions" value={money(m.transactionTotal)} detail={`${transactions.length} payments`} />
+          <Stat label="Cash collected" value={money(m.cash)} tone="brand" />
+          <Stat label="Bookings" value={m.total.toLocaleString()} tone="teal" />
+          <Stat label="Show rate" value={pct(m.showRate)} detail={`${m.shows} of ${m.total} showed`} tone="ok" />
+          <Stat label="Close rate" value={pct(m.closeRate)} detail={`${m.closes} of ${m.shows} shows closed`} tone="coral" />
+          <Stat label="Revenue generated" value={money(m.revenue)} tone="brand" />
+          <Stat label="Transactions" value={money(m.transactionTotal)} detail={`${transactions.length} payments`} tone="teal" />
         </div>
 
-        <section className="rounded-lg border border-neutral-200 bg-white overflow-hidden">
-          <p className="border-b border-neutral-100 bg-neutral-50 px-4 py-2 text-xs font-medium text-neutral-600">
+        <section className="overflow-hidden rounded-2xl border border-line-soft bg-panel-2">
+          <p className="border-b border-line-soft px-4 py-3 text-xs font-medium text-mute">
             Weekly breakdown
           </p>
           {weekly.length === 0 ? (
-            <p className="px-4 py-6 text-sm text-neutral-500">No bookings in this range.</p>
+            <p className="px-4 py-8 text-sm text-mute">No bookings in this range.</p>
           ) : (
             <table className="w-full text-sm">
-              <thead className="text-left text-xs uppercase tracking-wide text-neutral-500">
+              <thead className="text-left text-xs uppercase tracking-wide text-mute">
                 <tr>
                   {['Week of', 'Bookings', 'Shows', 'Closes', 'Show rate', 'Close rate', 'Cash', 'Revenue']
-                    .map((h) => <th key={h} className="px-4 py-2 font-medium">{h}</th>)}
+                    .map((h) => <th key={h} className="px-4 py-2.5 font-medium">{h}</th>)}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-neutral-100">
+              <tbody className="divide-y divide-line-soft">
                 {weekly.map((w) => (
-                  <tr key={w.week}>
-                    <td className="px-4 py-2">{new Date(w.week + 'T00:00:00').toLocaleDateString()}</td>
-                    <td className="px-4 py-2">{w.total}</td>
-                    <td className="px-4 py-2">{w.shows}</td>
-                    <td className="px-4 py-2">{w.closes}</td>
-                    <td className="px-4 py-2">{pct(w.total ? (100 * w.shows) / w.total : null)}</td>
-                    <td className="px-4 py-2">{pct(w.shows ? (100 * w.closes) / w.shows : null)}</td>
-                    <td className="px-4 py-2">{money(w.cash)}</td>
-                    <td className="px-4 py-2">{money(w.revenue)}</td>
+                  <tr key={w.week} className="hover:bg-elevated/40">
+                    <td className="px-4 py-2.5">{new Date(w.week + 'T00:00:00').toLocaleDateString()}</td>
+                    <td className="px-4 py-2.5 tabular-nums">{w.total}</td>
+                    <td className="px-4 py-2.5 tabular-nums">{w.shows}</td>
+                    <td className="px-4 py-2.5 tabular-nums">{w.closes}</td>
+                    <td className="px-4 py-2.5 tabular-nums">{pct(w.total ? (100 * w.shows) / w.total : null)}</td>
+                    <td className="px-4 py-2.5 tabular-nums">{pct(w.shows ? (100 * w.closes) / w.shows : null)}</td>
+                    <td className="px-4 py-2.5 tabular-nums">{money(w.cash)}</td>
+                    <td className="px-4 py-2.5 tabular-nums">{money(w.revenue)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -168,12 +185,19 @@ export default function DashboardPage() {
   );
 }
 
-function Stat({ label, value, detail }) {
+const TONE = {
+  brand: 'border-brand/25 bg-gradient-to-br from-brand/10 to-transparent text-brand',
+  teal: 'border-teal/25 bg-gradient-to-br from-teal/10 to-transparent text-teal',
+  coral: 'border-coral/25 bg-gradient-to-br from-coral/10 to-transparent text-coral',
+  ok: 'border-ok/25 bg-gradient-to-br from-ok/10 to-transparent text-ok',
+};
+
+function Stat({ label, value, detail, tone = 'brand' }) {
   return (
-    <div className="rounded-lg border border-neutral-200 bg-white p-4">
-      <p className="text-xs font-medium text-neutral-500">{label}</p>
-      <p className="mt-1 text-2xl font-semibold tabular-nums">{value}</p>
-      {detail && <p className="mt-0.5 text-xs text-neutral-400">{detail}</p>}
+    <div className={`rounded-2xl border bg-panel-2 p-4 ${TONE[tone] ?? TONE.brand}`}>
+      <p className="text-xs font-medium text-mute">{label}</p>
+      <p className="mt-1.5 text-2xl font-semibold tracking-tight tabular-nums text-fg">{value}</p>
+      {detail && <p className="mt-1 text-xs text-mute">{detail}</p>}
     </div>
   );
 }

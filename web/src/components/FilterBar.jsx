@@ -25,21 +25,34 @@ export default function FilterBar({ entity, search, onSearch, filters, onFilters
   }, [entity.table]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div className="mt-3 flex flex-wrap items-center gap-2">
-      <input value={search} onChange={(e) => onSearch(e.target.value)}
+    <div className="mt-4 flex flex-wrap items-center gap-2">
+      <input
+        value={search}
+        onChange={(e) => onSearch(e.target.value)}
         placeholder="Search…"
-        className="w-64 rounded border border-neutral-300 px-3 py-1.5 text-sm" />
+        className="field w-72"
+      />
       {filterCols.map((col) => (
-        <select key={col.name} value={filters[col.name] ?? ''}
+        <select
+          key={col.name}
+          value={filters[col.name] ?? ''}
           onChange={(e) => onFilters({ ...filters, [col.name]: e.target.value })}
-          className="rounded border border-neutral-300 bg-white px-2 py-1.5 text-sm text-neutral-700">
+          className="field w-auto"
+        >
           <option value="">{col.label}: all</option>
-          {(options[col.name] ?? []).map((v) => <option key={v} value={v}>{v}</option>)}
+          {(options[col.name] ?? []).map((v) => (
+            <option key={v} value={v}>{v}</option>
+          ))}
         </select>
       ))}
       {(search || Object.values(filters).some(Boolean)) && (
-        <button onClick={() => { onSearch(''); onFilters({}); }}
-          className="text-xs text-neutral-500 hover:text-neutral-800">clear</button>
+        <button
+          type="button"
+          onClick={() => { onSearch(''); onFilters({}); }}
+          className="text-xs text-mute transition hover:text-fg"
+        >
+          clear
+        </button>
       )}
     </div>
   );

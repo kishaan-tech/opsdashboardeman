@@ -46,27 +46,34 @@ export default function DetailPanel({ entity, row, onClose, onSaved, onDeleted }
   }
 
   return (
-    <aside className="w-96 shrink-0 border-l border-neutral-200 bg-white flex flex-col">
-      <header className="flex items-center justify-between border-b border-neutral-200 px-4 py-3">
-        <h3 className="font-semibold text-sm truncate">
+    <aside className="flex w-[24rem] shrink-0 flex-col border-l border-line-soft bg-panel-2">
+      <header className="flex items-center justify-between border-b border-line-soft px-4 py-3.5">
+        <h3 className="truncate text-sm font-semibold tracking-tight">
           {String(row[entity.titleField] ?? row.id)}
         </h3>
-        <button onClick={onClose} className="text-neutral-400 hover:text-neutral-700">✕</button>
+        <button
+          type="button"
+          onClick={onClose}
+          className="rounded-lg px-2 py-1 text-mute transition hover:bg-elevated hover:text-fg"
+        >
+          ✕
+        </button>
       </header>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {/* editable fields */}
+      <div className="flex-1 space-y-4 overflow-y-auto p-4">
         <section className="space-y-3">
           {editableColumns(entity).map((c) => (
             <label key={c.name} className="block">
-              <span className="mb-1 block text-xs font-medium text-neutral-500">{c.label}</span>
-              <Field column={c} value={draft[c.name]}
-                onChange={(v) => setDraft((d) => ({ ...d, [c.name]: v }))} />
+              <span className="mb-1.5 block text-xs font-medium text-mute">{c.label}</span>
+              <Field
+                column={c}
+                value={draft[c.name]}
+                onChange={(v) => setDraft((d) => ({ ...d, [c.name]: v }))}
+              />
             </label>
           ))}
         </section>
 
-        {/* Typeform / UTM read-only blocks */}
         {row.form_answers && typeof row.form_answers === 'object' && (
           <AnswersBlock title="Typeform details" data={row.form_answers} link={row.form_response_url} />
         )}
@@ -79,8 +86,7 @@ export default function DetailPanel({ entity, row, onClose, onSaved, onDeleted }
 
         <RelatedRecords entity={entity} row={row} />
 
-        {/* provenance — read-only */}
-        <section className="rounded border border-neutral-200 bg-neutral-50 p-3 text-xs text-neutral-500 space-y-1">
+        <section className="space-y-1 rounded-xl border border-line-soft bg-ink-2 p-3 text-xs text-mute">
           <Meta label="id" value={row.id} />
           <Meta label="airtable_id" value={row.airtable_id} />
           <Meta label="source" value={row.source} />
@@ -89,19 +95,21 @@ export default function DetailPanel({ entity, row, onClose, onSaved, onDeleted }
         </section>
       </div>
 
-      <footer className="border-t border-neutral-200 p-3 space-y-2">
+      <footer className="space-y-2 border-t border-line-soft p-3">
         {status && (
-          <p className={`text-xs ${status.kind === 'error' ? 'text-red-600' : 'text-green-600'}`}>
+          <p className={`text-xs ${status.kind === 'error' ? 'text-danger' : 'text-ok'}`}>
             {status.msg}
           </p>
         )}
         <div className="flex gap-2">
-          <button onClick={save} disabled={saving}
-            className="flex-1 rounded bg-neutral-900 px-3 py-2 text-sm text-white hover:bg-neutral-700 disabled:opacity-50">
+          <button type="button" onClick={save} disabled={saving} className="btn btn-primary flex-1">
             {saving ? 'Saving…' : 'Save'}
           </button>
-          <button onClick={remove}
-            className="rounded border border-red-200 px-3 py-2 text-sm text-red-600 hover:bg-red-50">
+          <button
+            type="button"
+            onClick={remove}
+            className="btn border-danger/40 text-danger hover:bg-danger/10"
+          >
             Delete
           </button>
         </div>
@@ -119,19 +127,20 @@ function AnswersBlock({ title, data, link }) {
   const entries = Object.entries(data).filter(([k]) => k !== '_hidden');
   if (!entries.length) return null;
   return (
-    <section className="rounded border border-neutral-200 p-3 space-y-2">
+    <section className="space-y-2 rounded-xl border border-line-soft p-3">
       <div className="flex items-center justify-between gap-2">
-        <h4 className="text-xs font-semibold uppercase tracking-wide text-neutral-500">{title}</h4>
+        <h4 className="text-xs font-semibold uppercase tracking-wide text-mute">{title}</h4>
         {link && (
-          <a href={link} target="_blank" rel="noreferrer"
-            className="text-xs text-blue-600 hover:underline">Open response</a>
+          <a href={link} target="_blank" rel="noreferrer" className="text-xs text-soft underline-offset-2 hover:text-fg hover:underline">
+            Open response
+          </a>
         )}
       </div>
       <dl className="space-y-2">
         {entries.map(([key, value]) => (
           <div key={key}>
-            <dt className="text-xs text-neutral-400">{key}</dt>
-            <dd className="text-sm text-neutral-800 break-words">
+            <dt className="text-xs text-mute">{key}</dt>
+            <dd className="break-words text-sm text-soft">
               {value === null || value === undefined ? '—'
                 : typeof value === 'object' ? JSON.stringify(value) : String(value)}
             </dd>
@@ -143,19 +152,42 @@ function AnswersBlock({ title, data, link }) {
 }
 
 function Field({ column, value, onChange }) {
-  const base = 'w-full rounded border border-neutral-300 px-3 py-1.5 text-sm';
   if (column.type === 'boolean') {
-    return <input type="checkbox" checked={value === true || value === 'true'}
-      onChange={(e) => onChange(e.target.checked)} className="h-4 w-4" />;
+    return (
+      <input
+        type="checkbox"
+        checked={value === true || value === 'true'}
+        onChange={(e) => onChange(e.target.checked)}
+        className="h-4 w-4 rounded border-line accent-fg"
+      />
+    );
   }
   if (column.type === 'json' || (typeof value === 'string' && value.length > 80)) {
-    return <textarea rows={4} value={value ?? ''} spellCheck={false}
-      onChange={(e) => onChange(e.target.value)} className={`${base} font-mono text-xs`} />;
+    return (
+      <textarea
+        rows={4}
+        value={value ?? ''}
+        spellCheck={false}
+        onChange={(e) => onChange(e.target.value)}
+        className="field font-mono text-xs"
+      />
+    );
   }
-  return <input value={value ?? ''} onChange={(e) => onChange(e.target.value)} className={base} />;
+  return (
+    <input
+      value={value ?? ''}
+      onChange={(e) => onChange(e.target.value)}
+      className="field"
+    />
+  );
 }
 
 function Meta({ label, value }) {
   if (!value) return null;
-  return <p className="truncate"><span className="text-neutral-400">{label}:</span> <span className="font-mono">{value}</span></p>;
+  return (
+    <p className="truncate">
+      <span className="text-mute">{label}:</span>{' '}
+      <span className="font-mono text-soft">{value}</span>
+    </p>
+  );
 }

@@ -20,19 +20,37 @@ export default function Login() {
   }
 
   return (
-    <div className="flex h-screen items-center justify-center bg-neutral-50">
-      <form onSubmit={submit} className="w-80 rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
-        <h1 className="font-semibold mb-1">ops-hub</h1>
-        <p className="text-xs text-neutral-500 mb-4">Sign in with your Supabase user</p>
-        <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
-          placeholder="email" autoComplete="username"
-          className="mb-2 w-full rounded border border-neutral-300 px-3 py-2 text-sm" />
-        <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)}
-          placeholder="password" autoComplete="current-password"
-          className="mb-3 w-full rounded border border-neutral-300 px-3 py-2 text-sm" />
-        {error && <p className="mb-3 text-xs text-red-600">{error}</p>}
-        <button disabled={busy}
-          className="w-full rounded bg-neutral-900 px-3 py-2 text-sm text-white hover:bg-neutral-700 disabled:opacity-50">
+    <div className="flex h-screen items-center justify-center px-4">
+      <form onSubmit={submit} className="w-full max-w-sm rounded-[1.35rem] border border-line-soft bg-panel p-7 shadow-[0_0_60px_rgba(77,143,255,0.1)]">
+        <div className="mb-6 flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand text-sm font-bold text-white">
+            oh
+          </div>
+          <div>
+            <h1 className="text-lg font-semibold tracking-tight">ops-hub</h1>
+            <p className="text-xs text-mute">Sign in with your Supabase user</p>
+          </div>
+        </div>
+        <input
+          type="email"
+          required
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="Email"
+          autoComplete="username"
+          className="field mb-2"
+        />
+        <input
+          type="password"
+          required
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Password"
+          autoComplete="current-password"
+          className="field mb-4"
+        />
+        {error && <p className="mb-3 text-xs text-danger">{error}</p>}
+        <button disabled={busy} type="submit" className="btn btn-primary w-full">
           {busy ? 'Signing in…' : 'Sign in'}
         </button>
       </form>

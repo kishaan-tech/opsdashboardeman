@@ -53,48 +53,74 @@ export default function EntityPage({ entity, recordId }) {
 
   return (
     <div className="flex h-full">
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="px-6 pt-5 pb-3 border-b border-neutral-200 bg-white">
-          <div className="flex items-baseline justify-between">
-            <h2 className="text-lg font-semibold">{entity.label}</h2>
-            <span className="text-xs text-neutral-500">{count.toLocaleString()} records</span>
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+        <header className="border-b border-line-soft px-6 pt-6 pb-4">
+          <div className="flex items-baseline justify-between gap-3">
+            <h2 className="text-xl font-semibold tracking-tight">{entity.label}</h2>
+            <span className="text-xs text-mute">{count.toLocaleString()} records</span>
           </div>
-          <FilterBar entity={entity} search={search} onSearch={setSearch}
-            filters={filters} onFilters={setFilters} />
+          <FilterBar
+            entity={entity}
+            search={search}
+            onSearch={setSearch}
+            filters={filters}
+            onFilters={setFilters}
+          />
         </header>
 
         {error && (
-          <div className="m-4 rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          <div className="m-4 rounded-xl border border-danger/30 bg-danger/10 p-3 text-sm text-danger">
             {error}
-            {/relation .* does not exist/.test(error) &&
-              <p className="mt-1 text-xs">Have you applied the schema migrations to Supabase yet?</p>}
+            {/relation .* does not exist/.test(error) && (
+              <p className="mt-1 text-xs text-mute">Have you applied the schema migrations to Supabase yet?</p>
+            )}
           </div>
         )}
 
         <div className="flex-1 overflow-auto">
-          <DataTable entity={entity} rows={rows} loading={loading}
-            selectedId={selected?.id} onSelect={setSelected} />
+          <DataTable
+            entity={entity}
+            rows={rows}
+            loading={loading}
+            selectedId={selected?.id}
+            onSelect={setSelected}
+          />
         </div>
 
-        <footer className="flex items-center justify-between border-t border-neutral-200 bg-white px-6 py-2 text-xs text-neutral-600">
+        <footer className="flex items-center justify-between border-t border-line-soft px-6 py-2.5 text-xs text-mute">
           <span>page {page + 1} / {pages}</span>
           <div className="space-x-2">
-            <button disabled={page === 0} onClick={() => setPage((p) => p - 1)}
-              className="rounded border border-neutral-300 px-2 py-1 disabled:opacity-40">‹ prev</button>
-            <button disabled={page >= pages - 1} onClick={() => setPage((p) => p + 1)}
-              className="rounded border border-neutral-300 px-2 py-1 disabled:opacity-40">next ›</button>
+            <button
+              type="button"
+              disabled={page === 0}
+              onClick={() => setPage((p) => p - 1)}
+              className="btn px-2.5 py-1 text-xs"
+            >
+              ‹ prev
+            </button>
+            <button
+              type="button"
+              disabled={page >= pages - 1}
+              onClick={() => setPage((p) => p + 1)}
+              className="btn px-2.5 py-1 text-xs"
+            >
+              next ›
+            </button>
           </div>
         </footer>
       </div>
 
       {selected && (
-        <DetailPanel entity={entity} row={selected}
+        <DetailPanel
+          entity={entity}
+          row={selected}
           onClose={() => setSelected(null)}
           onSaved={(updated) => {
             setSelected(updated);
             setRows((rs) => rs.map((r) => (r.id === updated.id ? updated : r)));
           }}
-          onDeleted={() => { setSelected(null); load(); }} />
+          onDeleted={() => { setSelected(null); load(); }}
+        />
       )}
     </div>
   );

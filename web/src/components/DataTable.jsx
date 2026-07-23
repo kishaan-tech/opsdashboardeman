@@ -4,27 +4,36 @@ export default function DataTable({ entity, rows, loading, selectedId, onSelect 
   const columns = entity.columns.slice(0, 8);
 
   if (loading && !rows.length) {
-    return <p className="p-6 text-sm text-neutral-500">Loading…</p>;
+    return <p className="p-6 text-sm text-mute">Loading…</p>;
   }
   if (!rows.length) {
-    return <p className="p-6 text-sm text-neutral-500">No records.</p>;
+    return <p className="p-6 text-sm text-mute">No records.</p>;
   }
 
   return (
     <table className="w-full text-sm">
-      <thead className="sticky top-0 bg-neutral-100 text-left text-xs uppercase tracking-wide text-neutral-500">
+      <thead className="sticky top-0 z-10 border-b border-line-soft bg-panel text-left text-xs uppercase tracking-wide text-mute">
         <tr>
-          {columns.map((c) => <th key={c.name} className="px-4 py-2 font-medium">{c.label}</th>)}
+          {columns.map((c) => (
+            <th key={c.name} className="px-4 py-3 font-medium">{c.label}</th>
+          ))}
         </tr>
       </thead>
-      <tbody className="divide-y divide-neutral-100 bg-white">
+      <tbody className="divide-y divide-line-soft">
         {rows.map((row) => (
-          <tr key={row.id} onClick={() => onSelect(row)}
-            className={`cursor-pointer hover:bg-neutral-50 ${selectedId === row.id ? 'bg-blue-50' : ''}`}>
+          <tr
+            key={row.id}
+            onClick={() => onSelect(row)}
+            className={`cursor-pointer transition ${
+              selectedId === row.id
+                ? 'bg-brand/10'
+                : 'hover:bg-elevated/50'
+            }`}
+          >
             {columns.map((c) => (
-              <td key={c.name} className="px-4 py-2 whitespace-nowrap max-w-64 overflow-hidden text-ellipsis">
+              <td key={c.name} className="max-w-64 overflow-hidden text-ellipsis whitespace-nowrap px-4 py-2.5 text-soft">
                 {c.name === 'possible_duplicate' && row.possible_duplicate
-                  ? <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium uppercase text-amber-900">flagged</span>
+                  ? <span className="chip bg-warn/15 text-warn">flagged</span>
                   : formatCell(row[c.name], c.type)}
               </td>
             ))}

@@ -1,1 +1,119 @@
 @import "tailwindcss";
+
+@theme {
+  --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
+
+  --color-ink: #070707;
+  --color-ink-2: #0e0e0e;
+  --color-panel: #141414;
+  --color-panel-2: #1a1a1a;
+  --color-elevated: #202020;
+  --color-line: #2a2a2a;
+  --color-line-soft: #232323;
+  --color-mute: #8b8b8b;
+  --color-soft: #bdbdbd;
+  --color-fg: #f3f3f3;
+
+  /* Accents — blue primary + coral secondary */
+  --color-brand: #4d8fff;
+  --color-brand-dim: #3a6fd4;
+  --color-coral: #ff6b4a;
+  --color-teal: #3ecfb2;
+  --color-accent: #4d8fff;
+  --color-danger: #f07178;
+  --color-ok: #7dcea0;
+  --color-warn: #e0b35a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background:
+    radial-gradient(ellipse 80% 50% at 0% 0%, rgba(77, 143, 255, 0.1), transparent 55%),
+    radial-gradient(ellipse 60% 40% at 100% 100%, rgba(255, 107, 74, 0.06), transparent 50%),
+    var(--color-ink);
+  color: var(--color-fg);
+  color-scheme: dark;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Shared form controls */
+.field {
+  width: 100%;
+  border-radius: 0.75rem;
+  border: 1px solid var(--color-line);
+  background: var(--color-ink-2);
+  color: var(--color-fg);
+  padding: 0.55rem 0.85rem;
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.field:focus {
+  border-color: color-mix(in srgb, var(--color-brand) 45%, #4a4a4a);
+  background: #121212;
+  box-shadow: 0 0 0 3px rgba(77, 143, 255, 0.15);
+}
+
+.field::placeholder {
+  color: #6f6f6f;
+}
+
+.btn {
+  border-radius: 0.75rem;
+  border: 1px solid var(--color-line);
+  background: var(--color-elevated);
+  color: var(--color-fg);
+  padding: 0.5rem 0.9rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.btn:hover:not(:disabled) {
+  background: #282828;
+  border-color: #3a3a3a;
+}
+
+.btn:disabled {
+  opacity: 0.4;
+}
+
+.btn-primary {
+  background: var(--color-brand);
+  color: #fff;
+  border-color: transparent;
+  font-weight: 600;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #6ba3ff;
+}
+
+.surface {
+  background: var(--color-panel);
+  border: 1px solid var(--color-line-soft);
+  border-radius: 1rem;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.15rem 0.55rem;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}

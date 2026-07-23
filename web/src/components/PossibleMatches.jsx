@@ -60,7 +60,7 @@ export default function PossibleMatches({ leadId }) {
 
   if (error) {
     return (
-      <section className="rounded border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
+      <section className="rounded-xl border border-warn/30 bg-warn/10 p-3 text-xs text-warn">
         {error}
       </section>
     );
@@ -68,11 +68,11 @@ export default function PossibleMatches({ leadId }) {
   if (!matches.length) return null;
 
   return (
-    <section className="rounded border border-amber-300 bg-amber-50 p-3 space-y-2">
-      <h4 className="text-xs font-semibold uppercase tracking-wide text-amber-800">
+    <section className="space-y-2 rounded-xl border border-warn/25 bg-warn/10 p-3">
+      <h4 className="text-xs font-semibold uppercase tracking-wide text-warn">
         Possible same person
       </h4>
-      <p className="text-xs text-amber-800/80">
+      <p className="text-xs text-warn/80">
         Different email, but shared phone and/or name. Confirm or dismiss each pair.
       </p>
       <ul className="space-y-2">
@@ -80,27 +80,35 @@ export default function PossibleMatches({ leadId }) {
           const otherId = m.lead_a_id === leadId ? m.lead_b_id : m.lead_a_id;
           const other = leads[otherId];
           return (
-            <li key={m.id} className="rounded border border-amber-200 bg-white p-2 text-xs space-y-1">
+            <li key={m.id} className="space-y-1 rounded-xl border border-line-soft bg-panel p-2.5 text-xs">
               <div className="flex items-center justify-between gap-2">
-                <a href={`#/entity/leads/record/${otherId}`}
-                  className="font-medium text-neutral-900 hover:underline truncate">
+                <a
+                  href={`#/entity/leads/record/${otherId}`}
+                  className="truncate font-medium text-fg underline-offset-2 hover:underline"
+                >
                   {other?.lead_name || other?.email || otherId.slice(0, 8)}
                 </a>
                 <ConfidenceBadge confidence={m.confidence} status={m.status} />
               </div>
-              <p className="text-neutral-600 truncate">{other?.email}</p>
-              {other?.phone && <p className="text-neutral-500">☎ {other.phone}</p>}
-              <p className="text-neutral-500">
+              <p className="truncate text-mute">{other?.email}</p>
+              {other?.phone && <p className="text-mute">{other.phone}</p>}
+              <p className="text-mute">
                 matched on: {(m.match_on || []).join(' + ') || '—'}
               </p>
               {m.status === 'open' && (
                 <div className="flex gap-2 pt-1">
-                  <button type="button" onClick={() => setStatus(m.id, 'confirmed')}
-                    className="rounded bg-neutral-900 px-2 py-1 text-white hover:bg-neutral-700">
+                  <button
+                    type="button"
+                    onClick={() => setStatus(m.id, 'confirmed')}
+                    className="btn btn-primary px-2 py-1 text-[11px]"
+                  >
                     Confirm same
                   </button>
-                  <button type="button" onClick={() => setStatus(m.id, 'dismissed')}
-                    className="rounded border border-neutral-300 px-2 py-1 text-neutral-600 hover:bg-neutral-50">
+                  <button
+                    type="button"
+                    onClick={() => setStatus(m.id, 'dismissed')}
+                    className="btn px-2 py-1 text-[11px]"
+                  >
                     Not the same
                   </button>
                 </div>
@@ -115,12 +123,12 @@ export default function PossibleMatches({ leadId }) {
 
 function ConfidenceBadge({ confidence, status }) {
   const color = confidence === 'high'
-    ? 'bg-red-100 text-red-800'
+    ? 'bg-danger/15 text-danger'
     : confidence === 'medium'
-      ? 'bg-amber-100 text-amber-800'
-      : 'bg-neutral-100 text-neutral-700';
+      ? 'bg-warn/15 text-warn'
+      : 'bg-elevated text-mute';
   return (
-    <span className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium uppercase ${color}`}>
+    <span className={`chip shrink-0 ${color}`}>
       {status === 'confirmed' ? 'confirmed' : confidence}
     </span>
   );

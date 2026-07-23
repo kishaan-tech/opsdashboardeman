@@ -59,22 +59,28 @@ export default function MatchesPage() {
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      <header className="border-b border-neutral-200 bg-white px-6 pt-5 pb-3 space-y-2">
-        <div className="flex items-baseline justify-between">
-          <h2 className="text-lg font-semibold">Same-person flags</h2>
-          <span className="text-xs text-neutral-500">{rows.length} shown</span>
+      <header className="space-y-3 border-b border-line-soft px-6 pt-6 pb-4">
+        <div className="flex items-baseline justify-between gap-3">
+          <h2 className="text-xl font-semibold tracking-tight">Same-person flags</h2>
+          <span className="text-xs text-mute">{rows.length} shown</span>
         </div>
-        <p className="text-sm text-neutral-600 max-w-2xl">
+        <p className="max-w-2xl text-sm text-mute">
           Customers who book, apply, or pay with different emails but share a phone
           {rules.rules.name?.enabled ? ' and/or name' : ''} are flagged here.
-          Tune rules in <code className="text-xs">server/src/config/identity-match.json</code>.
+          Tune rules in <code className="text-xs text-soft">server/src/config/identity-match.json</code>.
         </p>
         <div className="flex gap-2 text-xs">
           {['open', 'confirmed', 'dismissed', 'all'].map((f) => (
-            <button key={f} type="button" onClick={() => setFilter(f)}
-              className={`rounded px-2.5 py-1 capitalize ${
-                filter === f ? 'bg-neutral-900 text-white' : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
-              }`}>
+            <button
+              key={f}
+              type="button"
+              onClick={() => setFilter(f)}
+              className={`rounded-xl px-3 py-1.5 capitalize transition ${
+                filter === f
+                  ? 'bg-brand font-semibold text-white'
+                  : 'bg-elevated text-soft hover:text-fg'
+              }`}
+            >
               {f}
             </button>
           ))}
@@ -82,42 +88,50 @@ export default function MatchesPage() {
       </header>
 
       {error && (
-        <div className="m-4 rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+        <div className="m-4 rounded-xl border border-danger/30 bg-danger/10 p-3 text-sm text-danger">
           {error}
           {/does not exist/.test(error) && (
-            <p className="mt-1 text-xs">Apply <code>0006_identity_matches.sql</code> in the Supabase SQL editor.</p>
+            <p className="mt-1 text-xs text-mute">
+              Apply <code>0006_identity_matches.sql</code> in the Supabase SQL editor.
+            </p>
           )}
         </div>
       )}
 
-      <div className="flex-1 overflow-auto p-4">
-        {loading && <p className="text-sm text-neutral-500">Loading…</p>}
+      <div className="flex-1 overflow-auto p-6">
+        {loading && <p className="text-sm text-mute">Loading…</p>}
         {!loading && !rows.length && !error && (
-          <p className="text-sm text-neutral-500">No matches for this filter.</p>
+          <p className="text-sm text-mute">No matches for this filter.</p>
         )}
-        <ul className="space-y-3 max-w-3xl">
+        <ul className="max-w-3xl space-y-3">
           {rows.map((m) => {
             const a = leads[m.lead_a_id];
             const b = leads[m.lead_b_id];
             return (
-              <li key={m.id} className="rounded border border-neutral-200 bg-white p-4 text-sm">
-                <div className="flex flex-wrap items-center gap-2 mb-3">
+              <li key={m.id} className="rounded-2xl border border-line-soft bg-panel-2 p-4 text-sm">
+                <div className="mb-3 flex flex-wrap items-center gap-2">
                   <Badge>{m.confidence}</Badge>
                   <Badge muted>{(m.match_on || []).join(' + ')}</Badge>
                   <Badge muted>{m.status}</Badge>
                 </div>
-                <div className="grid sm:grid-cols-2 gap-3">
+                <div className="grid gap-3 sm:grid-cols-2">
                   <LeadCard lead={a} id={m.lead_a_id} />
                   <LeadCard lead={b} id={m.lead_b_id} />
                 </div>
                 {m.status === 'open' && (
-                  <div className="flex gap-2 mt-3">
-                    <button type="button" onClick={() => setStatus(m.id, 'confirmed')}
-                      className="rounded bg-neutral-900 px-3 py-1.5 text-xs text-white hover:bg-neutral-700">
+                  <div className="mt-3 flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setStatus(m.id, 'confirmed')}
+                      className="btn btn-primary text-xs"
+                    >
                       Confirm same person
                     </button>
-                    <button type="button" onClick={() => setStatus(m.id, 'dismissed')}
-                      className="rounded border border-neutral-300 px-3 py-1.5 text-xs hover:bg-neutral-50">
+                    <button
+                      type="button"
+                      onClick={() => setStatus(m.id, 'dismissed')}
+                      className="btn text-xs"
+                    >
                       Dismiss
                     </button>
                   </div>
@@ -133,20 +147,24 @@ export default function MatchesPage() {
 
 function LeadCard({ lead, id }) {
   return (
-    <a href={`#/entity/leads/record/${id}`}
-      className="block rounded border border-neutral-100 bg-neutral-50 p-3 hover:border-neutral-300">
-      <p className="font-medium text-neutral-900 truncate">{lead?.lead_name || '—'}</p>
-      <p className="text-xs text-neutral-600 truncate">{lead?.email || id}</p>
-      {lead?.phone && <p className="text-xs text-neutral-500 mt-1">{lead.phone}</p>}
+    <a
+      href={`#/entity/leads/record/${id}`}
+      className="block rounded-xl border border-line-soft bg-ink-2 p-3 transition hover:border-line hover:bg-elevated"
+    >
+      <p className="truncate font-medium text-fg">{lead?.lead_name || '—'}</p>
+      <p className="truncate text-xs text-mute">{lead?.email || id}</p>
+      {lead?.phone && <p className="mt-1 text-xs text-mute">{lead.phone}</p>}
     </a>
   );
 }
 
 function Badge({ children, muted }) {
   return (
-    <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide ${
-      muted ? 'bg-neutral-100 text-neutral-600' : 'bg-amber-100 text-amber-900'
-    }`}>
+    <span
+      className={`chip ${
+        muted ? 'bg-elevated text-mute' : 'bg-warn/15 text-warn'
+      }`}
+    >
       {children}
     </span>
   );

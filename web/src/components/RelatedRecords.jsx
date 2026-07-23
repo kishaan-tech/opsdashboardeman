@@ -34,24 +34,26 @@ function Relation({ rel, row }) {
   if (!target || items === null) return null;
 
   return (
-    <div className="rounded border border-neutral-200">
-      <p className="border-b border-neutral-100 bg-neutral-50 px-3 py-1.5 text-xs font-medium text-neutral-600">
-        {rel.label} <span className="text-neutral-400">({items.length})</span>
+    <div className="overflow-hidden rounded-xl border border-line-soft">
+      <p className="border-b border-line-soft bg-ink-2 px-3 py-2 text-xs font-medium text-mute">
+        {rel.label} <span className="text-mute/70">({items.length})</span>
       </p>
       {items.length === 0 ? (
-        <p className="px-3 py-2 text-xs text-neutral-400">none</p>
+        <p className="px-3 py-2 text-xs text-mute">none</p>
       ) : (
-        <ul className="divide-y divide-neutral-100">
+        <ul className="divide-y divide-line-soft">
           {items.slice(0, 8).map((item) => (
             <li key={item.id}>
-              <a href={`#/entity/${rel.table}/record/${item.id}`}
-                className="block px-3 py-1.5 text-sm text-blue-700 hover:bg-blue-50 truncate">
+              <a
+                href={`#/entity/${rel.table}/record/${item.id}`}
+                className="block truncate px-3 py-2 text-sm text-soft transition hover:bg-elevated hover:text-fg"
+              >
                 {String(item[target.titleField] ?? item.id)}
               </a>
             </li>
           ))}
           {items.length > 8 && (
-            <li className="px-3 py-1.5 text-xs text-neutral-400">+{items.length - 8} more</li>
+            <li className="px-3 py-2 text-xs text-mute">+{items.length - 8} more</li>
           )}
         </ul>
       )}

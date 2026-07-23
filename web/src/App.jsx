@@ -7,7 +7,6 @@ import DashboardPage from './pages/DashboardPage.jsx';
 import MatchesPage from './pages/MatchesPage.jsx';
 import Login from './pages/Login.jsx';
 
-// Tiny hash router: #/entity/<table>[/record/<id>] and #/events.
 function useHashRoute() {
   const [hash, setHash] = useState(window.location.hash);
   useEffect(() => {
@@ -25,7 +24,7 @@ function useHashRoute() {
 
 export default function App() {
   const route = useHashRoute();
-  const [session, setSession] = useState(undefined); // undefined = loading
+  const [session, setSession] = useState(undefined);
 
   useEffect(() => {
     if (!configured) return;
@@ -39,63 +38,108 @@ export default function App() {
   if (!session) return <Login />;
 
   const entity = config.entities.find((e) => e.table === route.table) ?? config.entities[0];
+  const email = session.user?.email ?? '';
 
   return (
-    <div className="flex h-screen bg-neutral-50 text-neutral-900">
-      <aside className="w-56 shrink-0 border-r border-neutral-200 bg-white flex flex-col">
-        <div className="px-4 py-4 border-b border-neutral-200">
-          <h1 className="font-semibold tracking-tight">ops-hub</h1>
-          <p className="text-xs text-neutral-500">internal operations</p>
+    <div className="flex h-screen text-fg">
+      {/* Left rail */}
+      <aside className="flex w-[15.5rem] shrink-0 flex-col px-3 py-4">
+        <div className="mb-6 px-2">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-brand text-sm font-bold tracking-tight text-white">
+              oh
+            </div>
+            <div>
+              <p className="text-sm font-semibold tracking-tight">ops-hub</p>
+              <p className="text-[11px] text-mute">internal ops</p>
+            </div>
+          </div>
         </div>
-        <nav className="flex-1 overflow-y-auto p-2 space-y-0.5">
-          <NavLink href="#/dashboard" active={route.page === 'dashboard'}>📊 Dashboard</NavLink>
-          <div className="pt-2 mt-2 border-t border-neutral-200" />
+
+        <nav className="flex-1 space-y-0.5 overflow-y-auto">
+          <NavSection label="Overview" />
+          <NavLink href="#/dashboard" active={route.page === 'dashboard'}>Dashboard</NavLink>
+
+          <NavSection label="Data" />
           {config.entities.map((e) => (
-            <NavLink key={e.table} href={`#/entity/${e.table}`}
-              active={route.page === 'entity' && entity?.table === e.table}>
+            <NavLink
+              key={e.table}
+              href={`#/entity/${e.table}`}
+              active={route.page === 'entity' && entity?.table === e.table}
+            >
               {e.label}
             </NavLink>
           ))}
-          <div className="pt-2 mt-2 border-t border-neutral-200">
-            <NavLink href="#/matches" active={route.page === 'matches'}>Same person</NavLink>
-            <NavLink href="#/events" active={route.page === 'events'}>⚡ Events</NavLink>
-          </div>
+
+          <NavSection label="Ops" />
+          <NavLink href="#/matches" active={route.page === 'matches'}>Same person</NavLink>
+          <NavLink href="#/events" active={route.page === 'events'}>Events</NavLink>
         </nav>
-        <button
-          onClick={() => supabase.auth.signOut()}
-          className="m-2 px-3 py-1.5 text-xs text-neutral-500 hover:text-neutral-800 text-left">
-          Sign out
-        </button>
+
+        <div className="mt-3 space-y-2 border-t border-line-soft px-1 pt-3">
+          <p className="truncate px-2 text-[11px] text-mute">{email}</p>
+          <button
+            type="button"
+            onClick={() => supabase.auth.signOut()}
+            className="w-full rounded-xl px-3 py-2 text-left text-xs text-mute transition hover:bg-elevated hover:text-fg"
+          >
+            Sign out
+          </button>
+        </div>
       </aside>
-      <main className="flex-1 overflow-hidden">
-        {route.page === 'dashboard' && <DashboardPage />}
-        {route.page === 'matches' && <MatchesPage />}
-        {route.page === 'events' && <EventsPage />}
-        {route.page === 'entity' && entity &&
-          <EntityPage key={entity.table} entity={entity} recordId={route.recordId} />}
+
+      {/* Main inset panel */}
+      <main className="flex min-w-0 flex-1 flex-col py-3 pr-3">
+        <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-[1.35rem] border border-line-soft bg-panel shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+          {route.page === 'dashboard' && <DashboardPage />}
+          {route.page === 'matches' && <MatchesPage />}
+          {route.page === 'events' && <EventsPage />}
+          {route.page === 'entity' && entity && (
+            <EntityPage key={entity.table} entity={entity} recordId={route.recordId} />
+          )}
+        </div>
       </main>
     </div>
   );
 }
 
+function NavSection({ label }) {
+  return (
+    <p className="px-3 pb-1 pt-4 text-[10px] font-semibold uppercase tracking-[0.14em] text-mute/80">
+      {label}
+    </p>
+  );
+}
+
 function NavLink({ href, active, children }) {
   return (
-    <a href={href}
-      className={`block rounded px-3 py-1.5 text-sm ${
-        active ? 'bg-neutral-900 text-white' : 'text-neutral-700 hover:bg-neutral-100'}`}>
-      {children}
+    <a
+      href={href}
+      className={`flex items-center justify-between rounded-xl px-3 py-2 text-sm transition ${
+        active
+          ? 'bg-brand/15 text-brand'
+          : 'text-soft hover:bg-elevated/60 hover:text-fg'
+      }`}
+    >
+      <span className="flex items-center gap-2">
+        {active && <span className="h-1.5 w-1.5 rounded-full bg-brand" />}
+        {children}
+      </span>
+      {active && <span className="text-brand/70">›</span>}
     </a>
   );
 }
 
 function ConfigNotice() {
   return (
-    <div className="flex h-screen items-center justify-center bg-neutral-50 p-8">
-      <div className="max-w-md rounded-lg border border-amber-300 bg-amber-50 p-6 text-sm text-amber-900">
-        <h2 className="font-semibold mb-2">Supabase not configured</h2>
-        <p>Set <code className="font-mono">VITE_SUPABASE_URL</code> and{' '}
-          <code className="font-mono">VITE_SUPABASE_ANON_KEY</code> in the repo-root{' '}
-          <code className="font-mono">.env</code>, then restart the dev server.</p>
+    <div className="flex h-screen items-center justify-center p-8">
+      <div className="max-w-md rounded-2xl border border-warn/30 bg-panel p-6 text-sm text-soft">
+        <h2 className="mb-2 font-semibold text-fg">Supabase not configured</h2>
+        <p>
+          Set <code className="font-mono text-brand">VITE_SUPABASE_URL</code> and{' '}
+          <code className="font-mono text-brand">VITE_SUPABASE_ANON_KEY</code> in the repo-root{' '}
+          <code className="font-mono">.env</code>, then restart the dev server.
+        </p>
       </div>
     </div>
   );
