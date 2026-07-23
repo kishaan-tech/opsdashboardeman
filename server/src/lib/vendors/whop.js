@@ -2,9 +2,13 @@
 // Docs: https://docs.whop.com/developer/guides/webhooks
 // Events: payment.succeeded, payment.failed, etc.
 
+import { isFanbasis } from './fanbasis.js';
+
 export function isWhop(body) {
-  if (typeof body?.type === 'string' && body.type.startsWith('payment.')) return true;
+  // Fanbasis also uses type "payment.succeeded" — distinguish first
+  if (isFanbasis(body)) return false;
   if (typeof body?.data?.id === 'string' && body.data.id.startsWith('pay_')) return true;
+  if (typeof body?.type === 'string' && body.type.startsWith('payment.')) return true;
   return false;
 }
 
@@ -43,6 +47,44 @@ function digAmount(data) {
   return 0;
 }
 
+function digTotalPrice(data) {
+  if (!data || typeof data !== 'object') return undefined;
+  const plan = data.plan || data.membership?.plan || data.product?.plan || {};
+  const candidates = [
+    data.total_price,
+    data.plan_price,
+    data.product_price,
+    data.renewal_price,
+    data.list_price,
+    plan.renewal_price,
+    plan.initial_price,
+    plan.price,
+    typeof plan.raw_price === 'number' ? plan.raw_price / 100 : null,
+  ];
+  for (const c of candidates) {
+    if (typeof c === 'number' && Number.isFinite(c) && c > 0) return c;
+  }
+  return undefined;
+}
+
+function digSubscriptionFlags(data, type) {
+  const t = String(type || '');
+  const status = String(data?.status || data?.membership?.status || '').toLowerCase();
+  const plan = data?.plan || data?.membership?.plan || {};
+  const billing = String(plan.billing_period || plan.interval || plan.base_currency || '').toLowerCase();
+  const isRenewal = t.includes('renew')
+    || /renew/.test(status)
+    || Boolean(data?.is_renewal)
+    || Boolean(data?.renewal);
+  const isSubscription = isRenewal
+    || t.includes('subscription')
+    || /renew|subscri|recurring/.test(status)
+    || /month|year|week|day|recurring/.test(billing)
+    || plan.plan_type === 'renewal'
+    || Boolean(data?.subscription_id || data?.membership_id);
+  return { is_subscription: isSubscription, is_renewal: isRenewal };
+}
+
 function statusFromType(type, dataStatus) {
   if (dataStatus) return String(dataStatus);
   if (typeof type === 'string') {
@@ -57,13 +99,18 @@ function statusFromType(type, dataStatus) {
 export function normalizeWhop(body) {
   const data = body.data ?? body;
   const type = body.type ?? '';
+  const amount = digAmount(data);
+  const totalPrice = digTotalPrice(data);
+  const flags = digSubscriptionFlags(data, type);
 
   return {
     payment_id: data.id || body.id,
-    amount: digAmount(data),
+    amount,
     status: statusFromType(type, data.status),
     paid_at: data.paid_at || data.created_at || body.timestamp || undefined,
     email: digEmail(data),
     name: digName(data),
+    total_price: totalPrice,
+    ...flags,
   };
 }

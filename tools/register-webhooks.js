@@ -2,10 +2,11 @@
 // Register Typeform (+ Calendly if token allows) webhooks against a public base URL.
 //
 // Usage:
-//   WEBHOOK_BASE_URL=https://your-app.vercel.app npm run register-webhooks
+//   WEBHOOK_BASE_URL=https://your-app.vercel.app ORG_SLUG=dooly npm run register-webhooks
 //
 // Env: TYPEFORM_API_KEY, CALENDLY_API_KEY (optional), WEBHOOK_SECRET
-//      TYPEFORM_FORM_IDS (optional, comma-separated; default = Brand Accelerator LP)
+//      TYPEFORM_FORM_IDS (optional, comma-separated)
+//      ORG_SLUG (required for multi-tenant paths; default dooly)
 
 import 'dotenv/config';
 import { fileURLToPath } from 'node:url';
@@ -19,7 +20,8 @@ const TYPEFORM_FORM_IDS = (process.env.TYPEFORM_FORM_IDS || 'AbXAZxlr')
   .map((s) => s.trim())
   .filter(Boolean);
 
-const TAG = 'ops-hub';
+const ORG_SLUG = (process.env.ORG_SLUG || 'dooly').toLowerCase();
+const TAG = `ops-hub-${ORG_SLUG}`;
 
 const {
   TYPEFORM_API_KEY,
@@ -78,8 +80,7 @@ async function calendly(method, urlPath, body) {
 
 async function registerTypeform(base) {
   if (!TYPEFORM_API_KEY) fail('Missing TYPEFORM_API_KEY');
-  // Query secret — Typeform can't send our x-webhook-secret header
-  const url = `${base}/api/webhooks/forms?source=typeform&secret=${encodeURIComponent(WEBHOOK_SECRET)}`;
+  const url = `${base}/api/webhooks/${ORG_SLUG}/forms?source=typeform&secret=${encodeURIComponent(WEBHOOK_SECRET)}`;
 
   for (const formId of TYPEFORM_FORM_IDS) {
     console.log(`\nTypeform form ${formId} → ${url.replace(WEBHOOK_SECRET, '***')}`);
@@ -98,7 +99,7 @@ async function registerCalendly(base) {
     return;
   }
 
-  const url = `${base}/api/webhooks/bookings?source=calendly&secret=${encodeURIComponent(WEBHOOK_SECRET)}`;
+  const url = `${base}/api/webhooks/${ORG_SLUG}/bookings?source=calendly&secret=${encodeURIComponent(WEBHOOK_SECRET)}`;
   console.log(`\nCalendly → ${url.replace(WEBHOOK_SECRET, '***')}`);
 
   const me = await calendly('GET', '/users/me');
@@ -138,7 +139,7 @@ async function main() {
     fail('WEBHOOK_SECRET missing or still change-me');
   }
   const base = baseUrl();
-  console.log(`Registering webhooks against ${base}`);
+  console.log(`Registering webhooks for org=${ORG_SLUG} against ${base}`);
   await registerTypeform(base);
   await registerCalendly(base);
   console.log('\nDone. Smoke-test: curl', `${base}/api/health`);

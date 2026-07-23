@@ -101,6 +101,8 @@ export default function RepStatsTable({ stats, transactions = [], bookings = [],
                             <thead className="text-mute">
                               <tr>
                                 <th className="py-1 text-left font-medium">Date</th>
+                                <th className="py-1 text-left font-medium">Name</th>
+                                <th className="py-1 text-left font-medium">Email</th>
                                 <th className="py-1 text-left font-medium">Lead / booking</th>
                                 <th className="py-1 text-right font-medium">Amount</th>
                                 <th className="py-1 text-right font-medium">Set comm</th>
@@ -111,6 +113,8 @@ export default function RepStatsTable({ stats, transactions = [], bookings = [],
                               {tx.map((t) => (
                                 <tr key={t.id}>
                                   <td className="py-1.5 text-soft">{t.date || '—'}</td>
+                                  <td className="py-1.5 text-soft">{t.lead_name || '—'}</td>
+                                  <td className="py-1.5 text-soft">{t.email || '—'}</td>
                                   <td className="py-1.5 text-soft">
                                     {t.booking_id
                                       ? (

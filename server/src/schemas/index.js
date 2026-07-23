@@ -33,13 +33,20 @@ export const bookingSchema = z.object({
     utm_content: z.string().nullable().optional(),
     utm_term: z.string().nullable().optional(),
   }).optional(),
+  // Explicit rep hints (iClosed host/setter); preferred over UTM when present
+  setter_hint: z.string().optional(),
+  closer_hint: z.string().optional(),
 });
 
 export const paymentSchema = z.object({
   payment_id: z.string().min(1),
-  amount: z.coerce.number().nonnegative(),   // major units, e.g. 800 or 800.50
+  amount: z.coerce.number().nonnegative(),   // cash taken on this charge (close cash)
   status: z.string().min(1).default('succeeded'),
   paid_at: dateish.optional(),
   email: z.string().email().optional(),
   name: z.string().optional(),
+  // Full deal / plan price for subscriptions & renewals → revenue_generated
+  total_price: z.coerce.number().nonnegative().optional(),
+  is_subscription: z.boolean().optional(),
+  is_renewal: z.boolean().optional(),
 });

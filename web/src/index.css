@@ -38,37 +38,34 @@ body,
 body {
   margin: 0;
   font-family: var(--font-sans);
-  font-weight: 600;
-  background:
-    radial-gradient(ellipse 80% 50% at 0% 0%, rgba(77, 143, 255, 0.1), transparent 55%),
-    radial-gradient(ellipse 60% 40% at 100% 100%, rgba(255, 107, 74, 0.06), transparent 50%),
-    var(--color-ink);
+  font-weight: 500;
+  background: var(--color-ink);
   color: var(--color-fg);
   color-scheme: dark;
   -webkit-font-smoothing: antialiased;
 }
 
-/* Step weights up so UI copy reads bolder than default Tailwind */
+/* Slightly stepped weights for product UI (calmer than marketing bold) */
 .font-medium {
-  font-weight: 650;
+  font-weight: 550;
 }
 .font-semibold {
-  font-weight: 750;
+  font-weight: 650;
 }
 .font-bold {
-  font-weight: 800;
+  font-weight: 750;
 }
 
 /* Shared form controls */
 .field {
   width: 100%;
-  border-radius: 0.75rem;
+  border-radius: 0.5rem;
   border: 1px solid var(--color-line);
   background: var(--color-ink-2);
   color: var(--color-fg);
-  padding: 0.55rem 0.85rem;
-  font-size: 0.875rem;
-  font-weight: 600;
+  padding: 0.4rem 0.7rem;
+  font-size: 0.8125rem;
+  font-weight: 550;
   outline: none;
   transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
 }
@@ -76,7 +73,7 @@ body {
 .field:focus {
   border-color: color-mix(in srgb, var(--color-brand) 45%, #4a4a4a);
   background: #121212;
-  box-shadow: 0 0 0 3px rgba(77, 143, 255, 0.15);
+  box-shadow: 0 0 0 2px rgba(77, 143, 255, 0.12);
 }
 
 .field::placeholder {
@@ -84,13 +81,20 @@ body {
 }
 
 .btn {
-  border-radius: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  white-space: nowrap;
+  border-radius: 0.5rem;
   border: 1px solid var(--color-line);
   background: var(--color-elevated);
   color: var(--color-fg);
-  padding: 0.5rem 0.9rem;
-  font-size: 0.875rem;
-  font-weight: 700;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.25;
+  text-decoration: none;
   transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
@@ -107,7 +111,7 @@ body {
   background: var(--color-brand);
   color: #fff;
   border-color: transparent;
-  font-weight: 800;
+  font-weight: 650;
 }
 
 .btn-primary:hover:not(:disabled) {
@@ -117,24 +121,24 @@ body {
 .surface {
   background: var(--color-panel);
   border: 1px solid var(--color-line-soft);
-  border-radius: 1rem;
+  border-radius: 0.625rem;
 }
 
 .chip {
   display: inline-flex;
   align-items: center;
   border-radius: 999px;
-  padding: 0.15rem 0.55rem;
+  padding: 0.1rem 0.45rem;
   font-size: 0.65rem;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
 nav a {
-  font-weight: 650;
+  font-weight: 550;
 }
 
 h1, h2, h3, h4 {
-  font-weight: 800;
+  font-weight: 650;
 }

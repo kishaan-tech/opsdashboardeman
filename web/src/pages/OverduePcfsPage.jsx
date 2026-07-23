@@ -1,21 +1,24 @@
 import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase.js';
 import { overduePcfs, repsById } from '../lib/metrics.js';
+import { useOrg, scopeToOrg } from '../lib/org.jsx';
 
 export default function OverduePcfsPage({ onCount }) {
+  const { activeOrgId } = useOrg();
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const load = useCallback(async () => {
+    if (!activeOrgId) return;
     setLoading(true);
     setError(null);
     try {
       const [b, r] = await Promise.all([
-        supabase.from('bookings').select(
-          'id, lead_name, email, email_calendly, start_time, set_by, set_by_id, closer_id, showed_up, closed, sales_reps, form_link, status',
-        ),
-        supabase.from('sales_reps').select('id, rep_name'),
+        scopeToOrg(supabase.from('bookings').select(
+          'id, lead_name, email, email_calendly, start_time, set_by_id, closer_id, showed_up, closed, sales_reps, form_link, status',
+        ), activeOrgId),
+        scopeToOrg(supabase.from('sales_reps').select('id, rep_name'), activeOrgId),
       ]);
       if (b.error) throw new Error(b.error.message);
       if (r.error) throw new Error(r.error.message);
@@ -27,7 +30,7 @@ export default function OverduePcfsPage({ onCount }) {
     } finally {
       setLoading(false);
     }
-  }, [onCount]);
+  }, [onCount, activeOrgId]);
 
   useEffect(() => { load(); }, [load]);
 

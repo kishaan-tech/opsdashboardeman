@@ -1,0 +1,50 @@
+{
+  "id": 239,
+  "accountId": 4,
+  "firstName": "Morgan",
+  "lastName": "Lee",
+  "email": "morgan.lee@example.com",
+  "phoneNumber": "+1 415 555 0192",
+  "secondary_email": null,
+  "secondary_phoneNumber": null,
+  "status": "POTENTIAL",
+  "createdAt": "2026-04-09T09:13:03.507Z",
+  "previewId": "contact_We1Ztdhvcii0",
+  "timeZone": "Asia/Karachi",
+  "joinedTime": "2026-04-09T09:13:03.506Z",
+  "country": "PK",
+  "ipAddress": "::1",
+  "updatedAt": "2026-04-09T09:13:03.507Z",
+  "questionsAndAnswers": {
+    "Email Address": "morgan.lee@example.com",
+    "Phone Number": "+1 415 555 0192",
+    "Full Name": "Morgan Lee",
+    "Budget": "10k+"
+  },
+  "contactFields": {},
+  "updatedAttributes": [],
+  "event": {
+    "id": 2,
+    "name": "Strategy intro call",
+    "color": "#0099FF",
+    "linkPrefix": "acme/strategy-call",
+    "eventType": "STRATEGY_EVENT"
+  },
+  "tracking": {
+    "first_utm_term": "strategy consultation",
+    "first_utm_source": "google",
+    "first_utm_medium": "cpc",
+    "first_utm_content": "hero_cta_variant_b",
+    "first_utm_campaign": "q2_2026_demo_requests",
+    "utm_term": "sales scheduling software",
+    "utm_source": "linkedin",
+    "utm_medium": "paid_social",
+    "utm_content": "carousel_ad_3",
+    "utm_campaign": "b2b_outbound_apr"
+  },
+  "Referrer_Url_Embed": "https://app.iclosed.io/e/acme/strategy-call",
+  "previewUrl": "https://app.iclosed.io/app/global-data/contacts?preview=contact_We1Ztdhvcii0",
+  "latestCall": null,
+  "disqualifyingGroup": [],
+  "hookType": "Contact created"
+}

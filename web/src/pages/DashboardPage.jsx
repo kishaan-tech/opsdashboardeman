@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../lib/supabase.js';
+import { useOrg, scopeToOrg } from '../lib/org.jsx';
 
 // KPI dashboard: headline numbers computed live from bookings + transactions,
 // scoped by the date range picker. All aggregation happens client-side —
@@ -33,6 +34,7 @@ function rangeFor(preset, customFrom, customTo) {
 }
 
 export default function DashboardPage() {
+  const { activeOrgId } = useOrg();
   const [preset, setPreset] = useState('30d');
   const [customFrom, setCustomFrom] = useState('');
   const [customTo, setCustomTo] = useState('');
@@ -47,19 +49,23 @@ export default function DashboardPage() {
   );
 
   const load = useCallback(async () => {
+    if (!activeOrgId) return;
     setLoading(true);
     setError(null);
-    let bq = supabase.from('bookings')
-      .select('start_time, showed_up, closed, cash_collected, revenue_generated')
-      .not('start_time', 'is', null);
-    let tq = supabase.from('transactions').select('date, amount');
+    let bq = scopeToOrg(
+      supabase.from('bookings')
+        .select('start_time, showed_up, closed, cash_collected, revenue_generated')
+        .not('start_time', 'is', null),
+      activeOrgId,
+    );
+    let tq = scopeToOrg(supabase.from('transactions').select('date, amount'), activeOrgId);
     if (from) { bq = bq.gte('start_time', from.toISOString()); tq = tq.gte('date', from.toISOString().slice(0, 10)); }
     if (to)   { bq = bq.lte('start_time', to.toISOString());   tq = tq.lte('date', to.toISOString().slice(0, 10)); }
     const [b, t] = await Promise.all([bq, tq]);
     if (b.error || t.error) setError((b.error ?? t.error).message);
     else { setBookings(b.data); setTransactions(t.data); }
     setLoading(false);
-  }, [from, to]);
+  }, [from, to, activeOrgId]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -97,26 +103,25 @@ export default function DashboardPage() {
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      <header className="border-b border-line-soft px-6 pt-6 pb-4">
-        <h2 className="text-xl font-semibold tracking-tight">Dashboard</h2>
-        <div className="mt-4 flex flex-wrap items-center gap-2">
-          <div className="flex overflow-hidden rounded-xl border border-line">
+      <header className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-3 border-b border-line-soft bg-ink-2/95 px-5 py-3 backdrop-blur-sm">
+        <h2 className="text-base font-semibold tracking-tight">Dashboard</h2>
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex overflow-hidden rounded-md border border-line">
             {PRESETS.map((p) => (
               <button
                 key={p.key}
                 type="button"
                 onClick={() => setPreset(p.key)}
-                className={`px-3 py-1.5 text-sm transition ${
+                className={`px-2.5 py-1 text-xs transition ${
                   preset === p.key
-                    ? 'bg-brand text-white font-semibold'
-                    : 'bg-ink-2 text-soft hover:bg-elevated hover:text-fg'
+                    ? 'bg-elevated font-semibold text-fg'
+                    : 'bg-panel text-soft hover:bg-elevated/80 hover:text-fg'
                 }`}
               >
                 {p.label}
               </button>
             ))}
           </div>
-          <span className="text-xs text-mute">or</span>
           <input
             type="date"
             value={customFrom}
@@ -133,9 +138,9 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      <div className={`flex-1 space-y-6 overflow-y-auto p-6 ${loading ? 'opacity-60' : ''}`}>
+      <div className={`flex-1 space-y-5 overflow-y-auto p-5 ${loading ? 'opacity-60' : ''}`}>
         {error && (
-          <div className="rounded-xl border border-danger/30 bg-danger/10 p-3 text-sm text-danger">
+          <div className="rounded-lg border border-danger/30 bg-danger/10 p-3 text-sm text-danger">
             {error}
           </div>
         )}
@@ -149,31 +154,31 @@ export default function DashboardPage() {
           <Stat label="Transactions" value={money(m.transactionTotal)} detail={`${transactions.length} payments`} tone="teal" />
         </div>
 
-        <section className="overflow-hidden rounded-2xl border border-line-soft bg-panel-2">
-          <p className="border-b border-line-soft px-4 py-3 text-xs font-medium text-mute">
+        <section className="overflow-hidden rounded-lg border border-line-soft bg-panel">
+          <p className="border-b border-line-soft px-4 py-2.5 text-xs font-medium text-mute">
             Weekly breakdown
           </p>
           {weekly.length === 0 ? (
             <p className="px-4 py-8 text-sm text-mute">No bookings in this range.</p>
           ) : (
             <table className="w-full text-sm">
-              <thead className="text-left text-xs uppercase tracking-wide text-mute">
-                <tr>
+              <thead className="text-left text-[11px] uppercase tracking-wide text-mute">
+                <tr className="border-b border-line-soft bg-panel-2/50">
                   {['Week of', 'Bookings', 'Shows', 'Closes', 'Show rate', 'Close rate', 'Cash', 'Revenue']
-                    .map((h) => <th key={h} className="px-4 py-2.5 font-medium">{h}</th>)}
+                    .map((h) => <th key={h} className="px-4 py-2 font-medium">{h}</th>)}
                 </tr>
               </thead>
               <tbody className="divide-y divide-line-soft">
                 {weekly.map((w) => (
-                  <tr key={w.week} className="hover:bg-elevated/40">
-                    <td className="px-4 py-2.5">{new Date(w.week + 'T00:00:00').toLocaleDateString()}</td>
-                    <td className="px-4 py-2.5 tabular-nums">{w.total}</td>
-                    <td className="px-4 py-2.5 tabular-nums">{w.shows}</td>
-                    <td className="px-4 py-2.5 tabular-nums">{w.closes}</td>
-                    <td className="px-4 py-2.5 tabular-nums">{pct(w.total ? (100 * w.shows) / w.total : null)}</td>
-                    <td className="px-4 py-2.5 tabular-nums">{pct(w.shows ? (100 * w.closes) / w.shows : null)}</td>
-                    <td className="px-4 py-2.5 tabular-nums">{money(w.cash)}</td>
-                    <td className="px-4 py-2.5 tabular-nums">{money(w.revenue)}</td>
+                  <tr key={w.week} className="hover:bg-elevated/30">
+                    <td className="px-4 py-2">{new Date(w.week + 'T00:00:00').toLocaleDateString()}</td>
+                    <td className="px-4 py-2 tabular-nums">{w.total}</td>
+                    <td className="px-4 py-2 tabular-nums">{w.shows}</td>
+                    <td className="px-4 py-2 tabular-nums">{w.closes}</td>
+                    <td className="px-4 py-2 tabular-nums">{pct(w.total ? (100 * w.shows) / w.total : null)}</td>
+                    <td className="px-4 py-2 tabular-nums">{pct(w.shows ? (100 * w.closes) / w.shows : null)}</td>
+                    <td className="px-4 py-2 tabular-nums">{money(w.cash)}</td>
+                    <td className="px-4 py-2 tabular-nums">{money(w.revenue)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -186,18 +191,21 @@ export default function DashboardPage() {
 }
 
 const TONE = {
-  brand: 'border-brand/25 bg-gradient-to-br from-brand/10 to-transparent text-brand',
-  teal: 'border-teal/25 bg-gradient-to-br from-teal/10 to-transparent text-teal',
-  coral: 'border-coral/25 bg-gradient-to-br from-coral/10 to-transparent text-coral',
-  ok: 'border-ok/25 bg-gradient-to-br from-ok/10 to-transparent text-ok',
+  brand: 'text-brand',
+  teal: 'text-teal',
+  coral: 'text-coral',
+  ok: 'text-ok',
 };
 
 function Stat({ label, value, detail, tone = 'brand' }) {
   return (
-    <div className={`rounded-2xl border bg-panel-2 p-4 ${TONE[tone] ?? TONE.brand}`}>
-      <p className="text-xs font-medium text-mute">{label}</p>
-      <p className="mt-1.5 text-2xl font-semibold tracking-tight tabular-nums text-fg">{value}</p>
-      {detail && <p className="mt-1 text-xs text-mute">{detail}</p>}
+    <div className="rounded-lg border border-line-soft bg-panel p-3.5">
+      <div className="flex items-center gap-1.5">
+        <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${TONE[tone] ?? TONE.brand} bg-current`} />
+        <p className="text-[11px] font-medium text-mute">{label}</p>
+      </div>
+      <p className="mt-2 text-xl font-semibold tracking-tight tabular-nums text-fg">{value}</p>
+      {detail && <p className="mt-1 text-[11px] text-mute">{detail}</p>}
     </div>
   );
 }

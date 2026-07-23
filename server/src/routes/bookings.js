@@ -4,18 +4,18 @@ import { ingest, upsertLead, resolveSalesRepId } from '../lib/ingest.js';
 import { bookingSchema } from '../schemas/index.js';
 import { normalizeBookingPayload } from '../lib/vendors/index.js';
 
-// POST /webhooks/bookings?source=calendly
-// Same booking_id on a later event (reschedule, cancel) updates the existing
-// row instead of creating a new one — upsert is on source + external_id.
-// The lead is found-or-created by email and linked via lead_id.
-// Contact (lead_name / email / phone) is stored on the booking too so the
-// Bookings table matches Leads without requiring a join.
-export const bookingsRouter = Router();
+// POST /webhooks/:orgSlug/bookings?source=calendly
+// (legacy: /webhooks/bookings?org=<slug>&source=calendly)
+export const bookingsRouter = Router({ mergeParams: true });
 
 bookingsRouter.post('/', async (req, res) => {
+  const orgId = req.org?.id;
+  if (!orgId) return res.status(400).json({ ok: false, error: 'org required' });
+
   const source = String(req.query.source ?? 'booking');
   const payload = normalizeBookingPayload(req.body, source);
   const result = await ingest({
+    orgId,
     source,
     eventType: `booking.${(payload?.status ?? 'event').toLowerCase()}`,
     externalId: payload?.booking_id,
@@ -23,13 +23,13 @@ bookingsRouter.post('/', async (req, res) => {
     schema: bookingSchema,
     apply: async (data, { source: src, externalId }) => {
       const leadId = await upsertLead({
+        orgId,
         email: data.email,
         name: data.name,
         phone: data.phone,
         sourceLabel: 'booking',
       });
 
-      // Prefer payload contact; fill gaps from the linked lead row.
       const { data: lead } = await supabase
         .from('leads')
         .select('lead_name, email, phone')
@@ -41,10 +41,17 @@ bookingsRouter.post('/', async (req, res) => {
       const phone = data.phone || lead?.phone || null;
 
       const utm = data.utm ?? null;
-      const setById = await resolveSalesRepId(utm?.utm_source || utm?.utm_content);
-      const closerId = await resolveSalesRepId(utm?.utm_campaign);
+      const setById = await resolveSalesRepId(
+        data.setter_hint || utm?.utm_source || utm?.utm_content,
+        orgId,
+      );
+      const closerId = await resolveSalesRepId(
+        data.closer_hint || utm?.utm_campaign,
+        orgId,
+      );
 
       const rowPatch = {
+        org_id: orgId,
         source: src,
         external_id: externalId,
         booking_id: data.booking_id,
@@ -62,11 +69,10 @@ bookingsRouter.post('/', async (req, res) => {
 
       let { data: row, error } = await supabase
         .from('bookings')
-        .upsert(rowPatch, { onConflict: 'source,external_id' })
+        .upsert(rowPatch, { onConflict: 'org_id,source,external_id' })
         .select('id')
         .single();
 
-      // Drop optional columns if the DB hasn't been migrated yet.
       if (error && /(utm|lead_name|\bemail\b|phone)/i.test(error.message)) {
         console.warn('bookings optional columns missing — apply migrations 0004 + 0005');
         delete rowPatch.utm;
@@ -75,7 +81,7 @@ bookingsRouter.post('/', async (req, res) => {
         delete rowPatch.phone;
         ({ data: row, error } = await supabase
           .from('bookings')
-          .upsert(rowPatch, { onConflict: 'source,external_id' })
+          .upsert(rowPatch, { onConflict: 'org_id,source,external_id' })
           .select('id')
           .single());
       }

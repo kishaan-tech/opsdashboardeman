@@ -1,24 +1,30 @@
 import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase.js';
+import { useOrg, scopeToOrg } from '../lib/org.jsx';
 
 // The debugging surface: every inbound webhook event, its status, and the
 // exact error if it failed. Replaces spelunking through Zapier task history.
 const STATUSES = ['', 'received', 'processed', 'failed', 'skipped'];
 
 export default function EventsPage() {
+  const { activeOrgId } = useOrg();
   const [events, setEvents] = useState([]);
   const [status, setStatus] = useState('');
   const [expanded, setExpanded] = useState(null);
   const [error, setError] = useState(null);
 
   const load = useCallback(async () => {
-    let q = supabase.from('ingestion_events')
-      .select('*').order('received_at', { ascending: false }).limit(200);
+    if (!activeOrgId) return;
+    let q = scopeToOrg(
+      supabase.from('ingestion_events')
+        .select('*').order('received_at', { ascending: false }).limit(200),
+      activeOrgId,
+    );
     if (status) q = q.eq('status', status);
     const { data, error } = await q;
     if (error) setError(error.message);
     else { setEvents(data); setError(null); }
-  }, [status]);
+  }, [status, activeOrgId]);
 
   useEffect(() => { load(); }, [load]);
 

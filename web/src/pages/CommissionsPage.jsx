@@ -3,16 +3,17 @@ import { supabase } from '../lib/supabase.js';
 import DateRangeBar from '../components/DateRangeBar.jsx';
 import RepStatsTable from '../components/RepStatsTable.jsx';
 import { daysAgo, calculateRepStats, moneyExact } from '../lib/metrics.js';
+import { useOrg, scopeToOrg } from '../lib/org.jsx';
 
-async function loadAll() {
+async function loadAll(orgId) {
   const [b, t, r] = await Promise.all([
-    supabase.from('bookings').select(
-      'id, lead_name, email, start_time, set_by, set_by_id, closer_id, showed_up, closed, sales_reps',
-    ),
-    supabase.from('transactions').select(
-      'id, amount, date, status, set_by, closed_by, setter_commission, closer_commission, booking_id',
-    ),
-    supabase.from('sales_reps').select('id, rep_name, role, set, close'),
+    scopeToOrg(supabase.from('bookings').select(
+      'id, lead_name, email, start_time, set_by_id, closer_id, showed_up, closed, sales_reps',
+    ), orgId),
+    scopeToOrg(supabase.from('transactions').select(
+      'id, amount, date, status, set_by, closed_by, setter_commission, closer_commission, booking_id, email, lead_name',
+    ), orgId),
+    scopeToOrg(supabase.from('sales_reps').select('id, rep_name, role, set, close'), orgId),
   ]);
   const err = b.error || t.error || r.error;
   if (err) throw new Error(err.message);
@@ -20,6 +21,7 @@ async function loadAll() {
 }
 
 export default function CommissionsPage() {
+  const { activeOrgId } = useOrg();
   const [range, setRange] = useState(() => ({ start: daysAgo(29), end: new Date() }));
   const [bookings, setBookings] = useState([]);
   const [transactions, setTransactions] = useState([]);
@@ -28,10 +30,11 @@ export default function CommissionsPage() {
   const [error, setError] = useState(null);
 
   const load = useCallback(async () => {
+    if (!activeOrgId) return;
     setLoading(true);
     setError(null);
     try {
-      const data = await loadAll();
+      const data = await loadAll(activeOrgId);
       setBookings(data.bookings);
       setTransactions(data.transactions);
       setReps(data.reps);
@@ -40,7 +43,7 @@ export default function CommissionsPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [activeOrgId]);
 
   useEffect(() => { load(); }, [load]);
 

@@ -1,0 +1,46 @@
+{
+  "hookType": "Call booked",
+  "trigger": { "id": "newCallScheduled", "name": "Call booked" },
+  "event_type": {
+    "uuid": "etype_fixture",
+    "name": "Strategy Call",
+    "type": "Strategy",
+    "kind": "Round Robin"
+  },
+  "event": {
+    "uuid": "call_fixture_abc123",
+    "assigned_to": "Alex Closer",
+    "name": "Alex Closer",
+    "email": "alex.closer@example.com",
+    "utc_start_time": "2025-05-13T16:00:00.000Z",
+    "utc_end_time": "2025-05-13T16:30:00.000Z",
+    "canceled": false,
+    "type": "Strategy",
+    "location": "Zoom"
+  },
+  "setter": {
+    "id": "user_setter_1",
+    "firstName": "Jane",
+    "lastName": "Setter",
+    "email": "jane.setter@example.com"
+  },
+  "invitee": {
+    "uuid": "ececc9a9-8837-4a4a-b720-e160319e0730",
+    "previewUrl": "https://app.iclosed.io/app/global-data/contacts?preview=contact_-d9DGyd9xHK_",
+    "firstName": "Raya",
+    "lastName": "Fleming",
+    "email": "raya.fleming@example.com",
+    "text_reminder_number": "+15551234567",
+    "canceled": false
+  },
+  "questionsAndAnswers": {
+    "Phone Number": "+15551234567",
+    "Email Address": "raya.fleming@example.com",
+    "Full Name": "Raya Fleming"
+  },
+  "utm_source": "fb",
+  "utm_campaign": "spring",
+  "utm_content": "ad1",
+  "utm_medium": "cpc",
+  "utm_term": null
+}

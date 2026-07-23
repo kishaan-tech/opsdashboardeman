@@ -1,0 +1,87 @@
+{
+  "event_type": {
+    "uuid": 2,
+    "kind": "Round Robin",
+    "slug": "strategy-call",
+    "name": "Strategy intro call",
+    "duration": 30,
+    "durationUnit": "MINUTES",
+    "owner": { "type": "closer" },
+    "type": "STRATEGY_EVENT"
+  },
+  "event": {
+    "uuid": 168,
+    "closerId": 5,
+    "closerName": "Jamie Alvarez",
+    "closerEmail": "jamie.alvarez@example.com",
+    "closerTimezone": "Asia/Karachi",
+    "assigned_to": { "1": "Jamie Alvarez" },
+    "extended_assigned_to": {
+      "1": {
+        "name": "Jamie Alvarez",
+        "email": "jamie.alvarez@example.com",
+        "primary": true
+      }
+    },
+    "utc_start_time": "2026-04-09T10:30:00.000Z",
+    "utc_end_time": "2026-04-09T11:00:00.000Z",
+    "start_time": "2026-04-09T10:30:00.000Z",
+    "end_time": "2026-04-09T11:00:00.000Z",
+    "created_at": "2026-04-09T09:15:39.003Z",
+    "location": "+1 415 555 0192",
+    "location_type": "phone",
+    "eventLink": "https://app.iclosed.io/e/acme/strategy-call",
+    "callPreviewId": "call_esiPJQAfxjJw",
+    "type": "STRATEGY_CALL",
+    "canceled": false,
+    "canceler_name": null,
+    "cancel_reason": null,
+    "canceled_at": null,
+    "setter": {
+      "name": "Riley Chen",
+      "firstName": "Riley",
+      "lastName": "Chen",
+      "email": "riley.chen@example.com",
+      "setBy": {
+        "firstName": "Riley",
+        "lastName": "Chen",
+        "email": "riley.chen@example.com"
+      }
+    }
+  },
+  "contactFields": {},
+  "invitee": {
+    "uuid": 239,
+    "previewUrl": "https://app.iclosed.io/app/global-data/contacts?preview=contact_We1Ztdhvcii0",
+    "callPreviewId": "call_esiPJQAfxjJw",
+    "first_name": "Morgan",
+    "last_name": "Lee",
+    "name": "Morgan Lee",
+    "email": "morgan.lee@example.com",
+    "text_reminder_number": "+1 415 555 0192",
+    "timezone": "Asia/Karachi",
+    "created_at": "2026-04-09T09:15:39.003Z",
+    "canceled": false
+  },
+  "questions_and_answers": [
+    { "question": "Email Address", "answer": "morgan.lee@example.com" },
+    { "question": "Phone Number", "answer": "+1 415 555 0192" },
+    { "question": "Full Name", "answer": "Morgan Lee" }
+  ],
+  "questions_and_responses": {
+    "1_question": "Email Address",
+    "1_response": "morgan.lee@example.com",
+    "Email Address": "morgan.lee@example.com",
+    "Phone Number": "+1 415 555 0192",
+    "Full Name": "Morgan Lee"
+  },
+  "tracking": {
+    "utm_source": "linkedin",
+    "utm_medium": "paid_social",
+    "utm_content": "carousel_ad_3",
+    "utm_campaign": "b2b_outbound_apr",
+    "utm_term": "sales scheduling software"
+  },
+  "call_booked_from": "PUBLIC_SCHEDULER",
+  "hookType": "Call booked"
+}

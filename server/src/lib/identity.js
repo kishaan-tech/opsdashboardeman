@@ -48,18 +48,26 @@ function pairIds(a, b) {
 /**
  * After a lead is written, find other leads that share phone and/or name
  * (different email) and upsert identity_matches rows + possible_duplicate flags.
+ * @param {string} leadId
+ * @param {string} [orgId]
  */
-export async function flagIdentityMatches(leadId) {
+export async function flagIdentityMatches(leadId, orgId) {
   const cfg = config();
   if (!cfg.enabled || !leadId) return [];
 
   const { data: lead, error } = await supabase
     .from('leads')
-    .select('id, email, lead_name, phone')
+    .select('id, email, lead_name, phone, org_id')
     .eq('id', leadId)
     .maybeSingle();
   if (error || !lead) {
     if (error) console.warn('flagIdentityMatches load:', error.message);
+    return [];
+  }
+
+  const tenantId = orgId || lead.org_id;
+  if (!tenantId) {
+    console.warn('flagIdentityMatches: lead missing org_id');
     return [];
   }
 
@@ -75,6 +83,7 @@ export async function flagIdentityMatches(leadId) {
     const { data, error: pErr } = await supabase
       .from('leads')
       .select('id, email, lead_name, phone')
+      .eq('org_id', tenantId)
       .neq('id', leadId)
       .not('phone', 'is', null)
       .limit(2000);
@@ -89,6 +98,7 @@ export async function flagIdentityMatches(leadId) {
       const { data, error: nErr } = await supabase
         .from('leads')
         .select('id, email, lead_name, phone')
+        .eq('org_id', tenantId)
         .neq('id', leadId)
         .ilike('lead_name', `%${token}%`)
         .limit(500);
@@ -160,7 +170,7 @@ export async function flagIdentityMatches(leadId) {
 
     if (existing) {
       // Never reopen a dismissed pair; refresh evidence only.
-      const patch = { match_on: matchOn, confidence, details };
+      const patch = { match_on: matchOn, confidence, details, org_id: tenantId };
       if (existing.status !== 'dismissed' && existing.status !== 'confirmed') {
         patch.status = 'open';
       }
@@ -173,6 +183,7 @@ export async function flagIdentityMatches(leadId) {
     const { data: row, error: insErr } = await supabase
       .from('identity_matches')
       .insert({
+        org_id: tenantId,
         lead_a_id: a,
         lead_b_id: b,
         match_on: matchOn,

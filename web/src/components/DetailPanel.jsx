@@ -6,7 +6,7 @@ import PossibleMatches from './PossibleMatches.jsx';
 
 // Slide-over editor for one record: editable fields, read-only provenance
 // metadata, and related records across tables.
-export default function DetailPanel({ entity, row, onClose, onSaved, onDeleted }) {
+export default function DetailPanel({ entity, row, onClose, onSaved, onDeleted, readOnly = false }) {
   const [draft, setDraft] = useState({});
   const [status, setStatus] = useState(null); // {kind: 'ok'|'error', msg}
   const [saving, setSaving] = useState(false);
@@ -109,18 +109,22 @@ export default function DetailPanel({ entity, row, onClose, onSaved, onDeleted }
             {status.msg}
           </p>
         )}
-        <div className="flex gap-2">
-          <button type="button" onClick={save} disabled={saving} className="btn btn-primary flex-1">
-            {saving ? 'Saving…' : 'Save'}
-          </button>
-          <button
-            type="button"
-            onClick={remove}
-            className="btn border-danger/40 text-danger hover:bg-danger/10"
-          >
-            Delete
-          </button>
-        </div>
+        {readOnly ? (
+          <p className="text-center text-xs text-mute">View only</p>
+        ) : (
+          <div className="flex gap-2">
+            <button type="button" onClick={save} disabled={saving} className="btn btn-primary flex-1">
+              {saving ? 'Saving…' : 'Save'}
+            </button>
+            <button
+              type="button"
+              onClick={remove}
+              className="btn border-danger/40 text-danger hover:bg-danger/10"
+            >
+              Delete
+            </button>
+          </div>
+        )}
       </footer>
     </aside>
   );

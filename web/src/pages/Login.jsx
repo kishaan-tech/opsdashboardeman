@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabase.js';
 
-// Email + password sign-in. Create your user in the Supabase dashboard
-// (Authentication → Users → Add user) — there is no self-serve signup,
-// this is an internal tool.
+// Email + password sign-in. Platform admins create users from Admin → org → Team members
+// (or in the Supabase dashboard). There is no self-serve signup.
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

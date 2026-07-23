@@ -3,19 +3,22 @@ import { supabase } from '../lib/supabase.js';
 import { ingest, upsertLead } from '../lib/ingest.js';
 import { paymentSchema } from '../schemas/index.js';
 import { normalizePaymentPayload } from '../lib/vendors/index.js';
+import { applyPaymentToBooking, paymentCashAndRevenue } from '../lib/paymentBooking.js';
 
-// POST /webhooks/payments?source=whop
-// A payment upserts a transaction. If the payer's email matches a lead with a
-// booking, the transaction is linked to their most recent booking and — when
-// the payment succeeded — that booking is marked closed.
-export const paymentsRouter = Router();
+// POST /webhooks/:orgSlug/payments?source=whop|fanbasis
+export const paymentsRouter = Router({ mergeParams: true });
 
-const SUCCESS_STATUSES = new Set(['succeeded', 'paid', 'completed', 'complete', 'success']);
+// Selected payments_providers (whop and/or fanbasis) each may set closed /
+// cash_collected (close cash) and revenue_generated (deal / subscription total).
 
 paymentsRouter.post('/', async (req, res) => {
+  const orgId = req.org?.id;
+  if (!orgId) return res.status(400).json({ ok: false, error: 'org required' });
+
   const source = String(req.query.source ?? 'payment');
   const payload = normalizePaymentPayload(req.body, source);
   const result = await ingest({
+    orgId,
     source,
     eventType: `payment.${(payload?.status ?? 'event').toLowerCase()}`,
     externalId: payload?.payment_id,
@@ -25,12 +28,14 @@ paymentsRouter.post('/', async (req, res) => {
       let bookingId = null;
       if (data.email) {
         const leadId = await upsertLead({
+          orgId,
           email: data.email,
           name: data.name,
           sourceLabel: 'payment',
         });
         const { data: booking } = await supabase
           .from('bookings').select('id')
+          .eq('org_id', orgId)
           .eq('lead_id', leadId)
           .order('start_time', { ascending: false })
           .limit(1)
@@ -39,9 +44,13 @@ paymentsRouter.post('/', async (req, res) => {
       }
 
       const paidAt = data.paid_at ? new Date(data.paid_at) : new Date();
+      const email = data.email ? String(data.email).trim().toLowerCase() : null;
+      const leadName = data.name ? String(data.name).trim() : null;
+      const money = paymentCashAndRevenue(data);
       const { data: row, error } = await supabase
         .from('transactions')
         .upsert({
+          org_id: orgId,
           source: src,
           external_id: externalId,
           transaction_id: data.payment_id,
@@ -49,17 +58,16 @@ paymentsRouter.post('/', async (req, res) => {
           date: paidAt.toISOString().slice(0, 10),
           status: data.status,
           booking_id: bookingId,
-        }, { onConflict: 'source,external_id' })
+          email,
+          lead_name: leadName,
+          cash_collected: money.cash_collected,
+          revenue_generated: money.revenue_generated,
+        }, { onConflict: 'org_id,source,external_id' })
         .select('id')
         .single();
       if (error) throw new Error(error.message);
 
-      if (bookingId && SUCCESS_STATUSES.has(data.status.toLowerCase())) {
-        await supabase.from('bookings').update({
-          closed: true,
-          cash_collected: data.amount,
-        }).eq('id', bookingId);
-      }
+      await applyPaymentToBooking(bookingId, data);
       return { table: 'transactions', id: row.id };
     },
   });

@@ -22,16 +22,16 @@ export default function DateRangeBar({ range, onChange }) {
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <div className="flex overflow-hidden rounded-xl border border-line">
+      <div className="flex overflow-hidden rounded-md border border-line">
         {PRESETS.map((p) => (
           <button
             key={p.key}
             type="button"
             onClick={() => onChange(p.range())}
-            className={`px-3 py-1.5 text-sm transition ${
+            className={`px-2.5 py-1 text-xs transition ${
               active === p.key
-                ? 'bg-brand font-semibold text-white'
-                : 'bg-ink-2 text-soft hover:bg-elevated hover:text-fg'
+                ? 'bg-elevated font-semibold text-fg'
+                : 'bg-panel text-soft hover:bg-elevated/80 hover:text-fg'
             }`}
           >
             {p.label}

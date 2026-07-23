@@ -8,12 +8,25 @@
 
 import { supabase } from './supabase.js';
 import { flagIdentityMatches } from './identity.js';
+import { touchOrgWebhook } from './org.js';
 
-export async function ingest({ source, eventType, externalId, payload, schema, apply }) {
+export async function ingest({
+  orgId, source, eventType, externalId, payload, schema, apply, skipReason,
+}) {
+  if (!orgId) {
+    return { status: 400, body: { ok: false, error: 'org_id required' } };
+  }
+
   // 1. audit log first — even garbage payloads leave a trace
   const { data: event, error: logError } = await supabase
     .from('ingestion_events')
-    .insert({ source, event_type: eventType, external_id: externalId ?? null, payload })
+    .insert({
+      org_id: orgId,
+      source,
+      event_type: eventType,
+      external_id: externalId ?? null,
+      payload,
+    })
     .select('id')
     .single();
 
@@ -21,19 +34,24 @@ export async function ingest({ source, eventType, externalId, payload, schema, a
 
   if (logError) {
     if (logError.code === '23505') {
-      // Same delivery already logged. If it previously failed, retry apply;
-      // otherwise treat as an idempotent success.
+      // Same external_id already logged. Re-apply for processed/failed so
+      // booking reschedules / cancel updates and contact refreshes upsert.
+      // "skipped" stays a no-op.
       const { data: existing } = await supabase
         .from('ingestion_events')
         .select('id, status')
+        .eq('org_id', orgId)
         .eq('source', source)
         .eq('external_id', externalId)
         .maybeSingle();
-      if (!existing || existing.status === 'processed' || existing.status === 'skipped') {
+      if (!existing) {
         return { status: 200, body: { ok: true, duplicate: true } };
       }
+      if (existing.status === 'skipped') {
+        return { status: 200, body: { ok: true, duplicate: true, skipped: true } };
+      }
       eventId = existing.id;
-      console.warn(`retrying previously failed event ${eventId} (${source}/${externalId})`);
+      console.warn(`re-applying event ${eventId} (${source}/${externalId}, was ${existing.status})`);
     } else {
       console.error('ingestion_events insert failed:', logError.message);
       return { status: 500, body: { ok: false, error: 'audit log unavailable' } };
@@ -44,6 +62,12 @@ export async function ingest({ source, eventType, externalId, payload, schema, a
     supabase.from('ingestion_events')
       .update({ ...patch, processed_at: new Date().toISOString() })
       .eq('id', eventId);
+
+  if (skipReason) {
+    await finalize({ status: 'skipped', error: skipReason });
+    touchOrgWebhook(orgId).catch(() => {});
+    return { status: 200, body: { ok: true, skipped: true, event_id: eventId } };
+  }
 
   // 2. validate
   const parsed = schema.safeParse(payload);
@@ -56,8 +80,9 @@ export async function ingest({ source, eventType, externalId, payload, schema, a
 
   // 3. domain writes
   try {
-    const { table, id } = await apply(parsed.data, { source, externalId });
+    const { table, id } = await apply(parsed.data, { source, externalId, orgId });
     await finalize({ status: 'processed', record_table: table, record_id: id, error: null });
+    touchOrgWebhook(orgId).catch(() => {});
     return { status: 200, body: { ok: true, id, event_id: eventId } };
   } catch (err) {
     await finalize({ status: 'failed', error: String(err.message ?? err) });
@@ -70,13 +95,15 @@ export async function ingest({ source, eventType, externalId, payload, schema, a
 // row is missing them (answers always refresh to the latest Typeform submit).
 // Returns the lead id.
 export async function upsertLead({
-  email, name, phone, sourceLabel, formAnswers, formResponseUrl,
+  orgId, email, name, phone, sourceLabel, formAnswers, formResponseUrl,
 }) {
+  if (!orgId) throw new Error('orgId required for upsertLead');
   const normalized = email.trim().toLowerCase();
 
   const { data: existing, error: findError } = await supabase
     .from('leads')
     .select('id, lead_name, phone')
+    .eq('org_id', orgId)
     .ilike('email', normalized)
     .maybeSingle();
   if (findError) throw new Error(`lead lookup failed: ${findError.message}`);
@@ -85,6 +112,7 @@ export async function upsertLead({
     const patch = {};
     if (!existing.lead_name && name) patch.lead_name = name;
     if (!existing.phone && phone) patch.phone = phone;
+    if (sourceLabel) patch.source_2 = sourceLabel;
     if (formAnswers && Object.keys(formAnswers).length) patch.form_answers = formAnswers;
     if (formResponseUrl) patch.form_response_url = formResponseUrl;
     if (Object.keys(patch).length) {
@@ -109,12 +137,13 @@ export async function upsertLead({
     };
     await syncContactToBookings(existing.id, contact);
     // Same-person check across different emails (phone / name rules)
-    flagIdentityMatches(existing.id).catch((err) =>
+    flagIdentityMatches(existing.id, orgId).catch((err) =>
       console.warn('flagIdentityMatches:', err.message ?? err));
     return existing.id;
   }
 
   const row = {
+    org_id: orgId,
     email: normalized,
     lead_name: name ?? null,
     phone: phone ?? null,
@@ -139,7 +168,7 @@ export async function upsertLead({
     lead_name: name ?? null,
     phone: phone ?? null,
   });
-  flagIdentityMatches(created.id).catch((err) =>
+  flagIdentityMatches(created.id, orgId).catch((err) =>
     console.warn('flagIdentityMatches:', err.message ?? err));
   return created.id;
 }
@@ -164,15 +193,15 @@ export async function syncContactToBookings(leadId, { email, lead_name: leadName
 // Match a UTM value to a sales_reps row by rep_name or email (case-insensitive).
 // Convention: put the setter's name/email in utm_source (or utm_content) on the
 // Calendly link; put the closer hint in utm_campaign when you use it.
-export async function resolveSalesRepId(hint) {
+export async function resolveSalesRepId(hint, orgId) {
   if (!hint || typeof hint !== 'string') return null;
   const q = hint.trim().toLowerCase();
   if (!q) return null;
 
-  const { data: reps, error } = await supabase
-    .from('sales_reps')
-    .select('id, rep_name, email')
-    .limit(500);
+  let query = supabase.from('sales_reps').select('id, rep_name, email').limit(500);
+  if (orgId) query = query.eq('org_id', orgId);
+
+  const { data: reps, error } = await query;
   if (error) {
     console.warn('sales_reps lookup failed:', error.message);
     return null;

@@ -10,16 +10,17 @@ import {
   getCashPerWeek,
   calculateRepStats,
 } from '../lib/metrics.js';
+import { useOrg, scopeToOrg } from '../lib/org.jsx';
 
-async function loadAll() {
+async function loadAll(orgId) {
   const [b, t, r] = await Promise.all([
-    supabase.from('bookings').select(
-      'id, lead_name, email, email_calendly, start_time, status, set_by, set_by_id, closer_id, showed_up, closed, cash_collected, sales_reps, form_link',
-    ),
-    supabase.from('transactions').select(
-      'id, amount, date, status, set_by, closed_by, setter_commission, closer_commission, booking_id',
-    ),
-    supabase.from('sales_reps').select('id, rep_name, role, set, close'),
+    scopeToOrg(supabase.from('bookings').select(
+      'id, lead_name, email, email_calendly, start_time, status, set_by_id, closer_id, showed_up, closed, cash_collected, sales_reps, form_link',
+    ), orgId),
+    scopeToOrg(supabase.from('transactions').select(
+      'id, amount, date, status, set_by, closed_by, setter_commission, closer_commission, booking_id, email, lead_name',
+    ), orgId),
+    scopeToOrg(supabase.from('sales_reps').select('id, rep_name, role, set, close'), orgId),
   ]);
   const err = b.error || t.error || r.error;
   if (err) throw new Error(err.message);
@@ -27,6 +28,7 @@ async function loadAll() {
 }
 
 export default function PerformancePage() {
+  const { activeOrgId } = useOrg();
   const [range, setRange] = useState(() => ({ start: daysAgo(29), end: new Date() }));
   const [bookings, setBookings] = useState([]);
   const [transactions, setTransactions] = useState([]);
@@ -35,10 +37,11 @@ export default function PerformancePage() {
   const [error, setError] = useState(null);
 
   const load = useCallback(async () => {
+    if (!activeOrgId) return;
     setLoading(true);
     setError(null);
     try {
-      const data = await loadAll();
+      const data = await loadAll(activeOrgId);
       setBookings(data.bookings);
       setTransactions(data.transactions);
       setReps(data.reps);
@@ -47,7 +50,7 @@ export default function PerformancePage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [activeOrgId]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -61,24 +64,22 @@ export default function PerformancePage() {
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      <header className="border-b border-line-soft px-6 pt-6 pb-4">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h2 className="text-xl font-semibold tracking-tight">Performance</h2>
-            <p className="mt-1 text-sm text-mute">
+      <header className="sticky top-0 z-10 space-y-2.5 border-b border-line-soft bg-ink-2/95 px-5 py-3 backdrop-blur-sm">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="min-w-0">
+            <h2 className="text-base font-semibold tracking-tight">Performance</h2>
+            <p className="text-xs text-mute">
               Charts and commission breakdown for the selected period
             </p>
           </div>
           <button type="button" onClick={load} className="btn text-xs">Refresh</button>
         </div>
-        <div className="mt-4">
-          <DateRangeBar range={range} onChange={setRange} />
-        </div>
+        <DateRangeBar range={range} onChange={setRange} />
       </header>
 
-      <div className={`flex-1 space-y-6 overflow-y-auto p-6 ${loading ? 'opacity-60' : ''}`}>
+      <div className={`flex-1 space-y-5 overflow-y-auto p-5 ${loading ? 'opacity-60' : ''}`}>
         {error && (
-          <div className="rounded-xl border border-danger/30 bg-danger/10 p-3 text-sm text-danger">
+          <div className="rounded-lg border border-danger/30 bg-danger/10 p-3 text-sm text-danger">
             {error}
           </div>
         )}

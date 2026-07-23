@@ -43,13 +43,13 @@
         },
         {
           "name": "form_answers",
-          "label": "Typeform Details",
+          "label": "Form answers",
           "type": "json",
           "readOnly": true
         },
         {
           "name": "form_response_url",
-          "label": "Typeform Link",
+          "label": "Form link",
           "type": "text",
           "readOnly": true
         },
@@ -133,14 +133,14 @@
           "label": "Closer Cancelled?",
           "type": "boolean"
         },
-        {
+          {
           "name": "cash_contracted",
-          "label": "Cash Contracted",
+          "label": "Cash Contracted (deal size)",
           "type": "number"
         },
         {
           "name": "cash_collected",
-          "label": "Cash Collected",
+          "label": "Cash Collected (at close)",
           "type": "number"
         },
         {
@@ -150,7 +150,7 @@
         },
         {
           "name": "revenue_generated",
-          "label": "Revenue Generated",
+          "label": "Revenue Generated (deal/sub total)",
           "type": "number"
         },
         {
@@ -195,7 +195,7 @@
         },
         {
           "name": "email_calendly",
-          "label": "Email - Calendly",
+          "label": "Scheduler email",
           "type": "text"
         },
         {
@@ -315,8 +315,28 @@
           "type": "text"
         },
         {
+          "name": "lead_name",
+          "label": "Name",
+          "type": "text"
+        },
+        {
+          "name": "email",
+          "label": "Email",
+          "type": "text"
+        },
+        {
           "name": "amount",
           "label": "Amount",
+          "type": "number"
+        },
+        {
+          "name": "cash_collected",
+          "label": "Cash Collected",
+          "type": "number"
+        },
+        {
+          "name": "revenue_generated",
+          "label": "Revenue Generated",
           "type": "number"
         },
         {

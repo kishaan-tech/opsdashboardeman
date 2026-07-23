@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase.js';
+import { useOrg, scopeToOrg } from '../lib/org.jsx';
 
 // Internal replacement for Typeform PCF (Xi0jVpJr).
 // Writes onto the linked bookings row: showed_up, closed, objection,
@@ -8,6 +9,7 @@ import { supabase } from '../lib/supabase.js';
 const OBJECTIONS = ['None', 'Money', 'Fear', 'Other'];
 
 export default function PostCallPage({ bookingId: bookingIdProp }) {
+  const { activeOrgId } = useOrg();
   const [bookingId, setBookingId] = useState(bookingIdProp || '');
   const [booking, setBooking] = useState(null);
   const [recent, setRecent] = useState([]);
@@ -25,28 +27,31 @@ export default function PostCallPage({ bookingId: bookingIdProp }) {
   const [fathomLink, setFathomLink] = useState('');
 
   const loadRecent = useCallback(async () => {
-    const { data, error: err } = await supabase
-      .from('bookings')
-      .select('id, lead_name, email, email_calendly, start_time, showed_up, closed, status')
-      .order('start_time', { ascending: false, nullsFirst: false })
-      .limit(40);
+    if (!activeOrgId) return;
+    const { data, error: err } = await scopeToOrg(
+      supabase
+        .from('bookings')
+        .select('id, lead_name, email, email_calendly, start_time, showed_up, closed, status')
+        .order('start_time', { ascending: false, nullsFirst: false })
+        .limit(40),
+      activeOrgId,
+    );
     if (err) setError(err.message);
     else setRecent(data || []);
-  }, []);
+  }, [activeOrgId]);
 
   const loadBooking = useCallback(async (id) => {
-    if (!id) {
+    if (!id || !activeOrgId) {
       setBooking(null);
       return;
     }
     setLoading(true);
     setError(null);
     setSaved(false);
-    const { data, error: err } = await supabase
-      .from('bookings')
-      .select('*')
-      .eq('id', id)
-      .maybeSingle();
+    const { data, error: err } = await scopeToOrg(
+      supabase.from('bookings').select('*').eq('id', id),
+      activeOrgId,
+    ).maybeSingle();
     if (err) {
       setError(err.message);
       setBooking(null);
@@ -72,7 +77,7 @@ export default function PostCallPage({ bookingId: bookingIdProp }) {
       setFathomLink(data.fathom_link || '');
     }
     setLoading(false);
-  }, []);
+  }, [activeOrgId]);
 
   useEffect(() => { loadRecent(); }, [loadRecent]);
 
@@ -287,7 +292,7 @@ export default function PostCallPage({ bookingId: bookingIdProp }) {
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="block">
-                  <span className="mb-1.5 block text-sm font-medium">Cash collected</span>
+                  <span className="mb-1.5 block text-sm font-medium">Cash collected (at close)</span>
                   <p className="mb-1.5 text-xs text-mute">(if no close type 0)</p>
                   <input
                     type="number"
@@ -300,7 +305,7 @@ export default function PostCallPage({ bookingId: bookingIdProp }) {
                   />
                 </label>
                 <label className="block">
-                  <span className="mb-1.5 block text-sm font-medium">Revenue generated</span>
+                  <span className="mb-1.5 block text-sm font-medium">Revenue generated (deal / sub total)</span>
                   <p className="mb-1.5 text-xs text-mute">(if no close type 0)</p>
                   <input
                     type="number"

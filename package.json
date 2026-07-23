@@ -11,6 +11,7 @@
     "build": "npm run build --workspace web",
     "register-webhooks": "node tools/register-webhooks.js",
     "e2e-poll": "node tools/e2e-poll-test.js",
+    "smoke:iclosed-eman": "node tools/smoke-iclosed-eman.js",
     "scan-matches": "node tools/scan-identity-matches.js"
   },
   "dependencies": {

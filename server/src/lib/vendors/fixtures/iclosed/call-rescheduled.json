@@ -1,0 +1,27 @@
+{
+  "hookType": "Call rescheduled",
+  "trigger": { "id": "callRescheduled", "name": "Call rescheduled" },
+  "event": {
+    "uuid": "call_fixture_abc123",
+    "assigned_to": "Alex Closer",
+    "name": "Alex Closer",
+    "email": "alex.closer@example.com",
+    "utc_start_time": "2025-05-14T18:00:00.000Z",
+    "utc_end_time": "2025-05-14T18:30:00.000Z",
+    "canceled": false,
+    "type": "Strategy"
+  },
+  "setter": {
+    "firstName": "Jane",
+    "lastName": "Setter",
+    "email": "jane.setter@example.com"
+  },
+  "invitee": {
+    "uuid": "ececc9a9-8837-4a4a-b720-e160319e0730",
+    "firstName": "Raya",
+    "lastName": "Fleming",
+    "email": "raya.fleming@example.com",
+    "text_reminder_number": "+15551234567",
+    "canceled": false
+  }
+}

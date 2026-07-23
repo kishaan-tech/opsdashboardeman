@@ -3,10 +3,14 @@ import { supabase } from '../lib/supabase.js';
 import DataTable from '../components/DataTable.jsx';
 import FilterBar from '../components/FilterBar.jsx';
 import DetailPanel from '../components/DetailPanel.jsx';
+import { useOrg, scopeToOrg } from '../lib/org.jsx';
+import { canWrite } from '../lib/permissions.js';
 
 const PAGE_SIZE = 50;
 
 export default function EntityPage({ entity, recordId }) {
+  const { activeOrgId, role } = useOrg();
+  const writable = canWrite(role);
   const [rows, setRows] = useState([]);
   const [count, setCount] = useState(0);
   const [page, setPage] = useState(0);
@@ -17,12 +21,16 @@ export default function EntityPage({ entity, recordId }) {
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
+    if (!activeOrgId) return;
     setLoading(true);
     setError(null);
-    let q = supabase.from(entity.table)
-      .select('*', { count: 'exact' })
-      .order('created_at', { ascending: false })
-      .range(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE - 1);
+    let q = scopeToOrg(
+      supabase.from(entity.table)
+        .select('*', { count: 'exact' })
+        .order('created_at', { ascending: false })
+        .range(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE - 1),
+      activeOrgId,
+    );
 
     const textCols = entity.columns.filter((c) => c.type === 'text').map((c) => c.name);
     if (search.trim() && textCols.length) {
@@ -37,17 +45,20 @@ export default function EntityPage({ entity, recordId }) {
     if (error) setError(error.message);
     else { setRows(data); setCount(total ?? 0); }
     setLoading(false);
-  }, [entity, page, search, filters]);
+  }, [entity, page, search, filters, activeOrgId]);
 
   useEffect(() => { load(); }, [load]);
-  useEffect(() => { setPage(0); }, [search, filters]);
+  useEffect(() => { setPage(0); }, [search, filters, activeOrgId]);
 
   // deep link: #/entity/<table>/record/<id>
   useEffect(() => {
-    if (!recordId) return;
-    supabase.from(entity.table).select('*').eq('id', recordId).maybeSingle()
+    if (!recordId || !activeOrgId) return;
+    scopeToOrg(
+      supabase.from(entity.table).select('*').eq('id', recordId),
+      activeOrgId,
+    ).maybeSingle()
       .then(({ data }) => data && setSelected(data));
-  }, [entity.table, recordId]);
+  }, [entity.table, recordId, activeOrgId]);
 
   const pages = Math.max(1, Math.ceil(count / PAGE_SIZE));
 
@@ -114,6 +125,7 @@ export default function EntityPage({ entity, recordId }) {
         <DetailPanel
           entity={entity}
           row={selected}
+          readOnly={!writable}
           onClose={() => setSelected(null)}
           onSaved={(updated) => {
             setSelected(updated);

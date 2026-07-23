@@ -1,0 +1,30 @@
+{
+  "hookType": "Contact created",
+  "trigger": { "id": "newContactCreated", "name": "Contact created" },
+  "id": "contact_fixture_001",
+  "previewId": "contact_-d9DGyd9xHK_",
+  "firstName": "Raya",
+  "lastName": "Fleming",
+  "email": "raya.fleming@example.com",
+  "phoneNumber": "+15551234567",
+  "status": "Qualified",
+  "createdAt": "2025-05-09T15:28:40.783Z",
+  "updatedAt": "2025-05-09T15:28:41.385Z",
+  "previewUrl": "https://app.iclosed.io/app/global-data/contacts?preview=contact_-d9DGyd9xHK_",
+  "questionsAndAnswers": {
+    "Phone Number": "+15551234567",
+    "Email Address": "raya.fleming@example.com",
+    "Full Name": "Raya Fleming",
+    "Budget": "10k+"
+  },
+  "event": {
+    "id": "evt_fixture",
+    "name": "Strategy Call",
+    "eventType": "Strategy"
+  },
+  "utm_source": "fb",
+  "utm_campaign": "spring",
+  "utm_content": "setter-jane",
+  "utm_medium": "cpc",
+  "utm_term": null
+}
