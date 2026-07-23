@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { supabase, configured } from './lib/supabase.js';
 import config from './config/entities.json';
 import EntityPage from './pages/EntityPage.jsx';
@@ -6,7 +6,11 @@ import EventsPage from './pages/EventsPage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
 import MatchesPage from './pages/MatchesPage.jsx';
 import PostCallPage from './pages/PostCallPage.jsx';
+import PerformancePage from './pages/PerformancePage.jsx';
+import CommissionsPage from './pages/CommissionsPage.jsx';
+import OverduePcfsPage from './pages/OverduePcfsPage.jsx';
 import Login from './pages/Login.jsx';
+import { overduePcfs, repsById } from './lib/metrics.js';
 
 function useHashRoute() {
   const [hash, setHash] = useState(window.location.hash);
@@ -27,6 +31,7 @@ function useHashRoute() {
 export default function App() {
   const route = useHashRoute();
   const [session, setSession] = useState(undefined);
+  const [overdueCount, setOverdueCount] = useState(null);
 
   useEffect(() => {
     if (!configured) return;
@@ -34,6 +39,23 @@ export default function App() {
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
     return () => sub.subscription.unsubscribe();
   }, []);
+
+  const refreshOverdue = useCallback(async () => {
+    if (!configured) return;
+    const [b, r] = await Promise.all([
+      supabase.from('bookings').select('id, start_time, showed_up, set_by, set_by_id, closer_id, sales_reps'),
+      supabase.from('sales_reps').select('id, rep_name'),
+    ]);
+    if (b.error || r.error) return;
+    setOverdueCount(overduePcfs(b.data || [], repsById(r.data || [])).length);
+  }, []);
+
+  useEffect(() => {
+    if (!session) return;
+    refreshOverdue();
+    const t = setInterval(refreshOverdue, 60_000);
+    return () => clearInterval(t);
+  }, [session, refreshOverdue]);
 
   if (!configured) return <ConfigNotice />;
   if (session === undefined) return null;
@@ -44,7 +66,6 @@ export default function App() {
 
   return (
     <div className="flex h-screen text-fg">
-      {/* Left rail */}
       <aside className="flex w-[15.5rem] shrink-0 flex-col px-3 py-4">
         <div className="mb-6 px-2">
           <div className="flex items-center gap-2.5">
@@ -61,6 +82,15 @@ export default function App() {
         <nav className="flex-1 space-y-0.5 overflow-y-auto">
           <NavSection label="Overview" />
           <NavLink href="#/dashboard" active={route.page === 'dashboard'}>Dashboard</NavLink>
+          <NavLink href="#/performance" active={route.page === 'performance'}>Performance</NavLink>
+          <NavLink href="#/commissions" active={route.page === 'commissions'}>Commissions</NavLink>
+          <NavLink
+            href="#/overdue-pcfs"
+            active={route.page === 'overdue-pcfs'}
+            badge={overdueCount}
+          >
+            Overdue PCFs
+          </NavLink>
 
           <NavSection label="Data" />
           {config.entities.map((e) => (
@@ -91,10 +121,14 @@ export default function App() {
         </div>
       </aside>
 
-      {/* Main inset panel */}
       <main className="flex min-w-0 flex-1 flex-col py-3 pr-3">
         <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-[1.35rem] border border-line-soft bg-panel shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
           {route.page === 'dashboard' && <DashboardPage />}
+          {route.page === 'performance' && <PerformancePage />}
+          {route.page === 'commissions' && <CommissionsPage />}
+          {route.page === 'overdue-pcfs' && (
+            <OverduePcfsPage onCount={setOverdueCount} />
+          )}
           {route.page === 'post-call' && <PostCallPage bookingId={route.bookingId} />}
           {route.page === 'matches' && <MatchesPage />}
           {route.page === 'events' && <EventsPage />}
@@ -115,7 +149,7 @@ function NavSection({ label }) {
   );
 }
 
-function NavLink({ href, active, children }) {
+function NavLink({ href, active, children, badge }) {
   return (
     <a
       href={href}
@@ -125,11 +159,16 @@ function NavLink({ href, active, children }) {
           : 'text-soft hover:bg-elevated/60 hover:text-fg'
       }`}
     >
-      <span className="flex items-center gap-2">
-        {active && <span className="h-1.5 w-1.5 rounded-full bg-brand" />}
-        {children}
+      <span className="flex min-w-0 items-center gap-2">
+        {active && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand" />}
+        <span className="truncate">{children}</span>
       </span>
-      {active && <span className="text-brand/70">›</span>}
+      <span className="flex shrink-0 items-center gap-1.5">
+        {badge != null && badge > 0 && (
+          <span className="chip bg-danger/20 text-danger">{badge > 99 ? '99+' : badge}</span>
+        )}
+        {active && <span className="text-brand/70">›</span>}
+      </span>
     </a>
   );
 }
