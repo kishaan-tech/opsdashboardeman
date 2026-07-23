@@ -13,6 +13,21 @@
       "maxDuration": 10,
       "memory": 256
     },
+    "api/webhooks/forms.js": {
+      "maxDuration": 30,
+      "memory": 1024,
+      "includeFiles": "server/**"
+    },
+    "api/webhooks/bookings.js": {
+      "maxDuration": 30,
+      "memory": 1024,
+      "includeFiles": "server/**"
+    },
+    "api/webhooks/payments.js": {
+      "maxDuration": 30,
+      "memory": 1024,
+      "includeFiles": "server/**"
+    },
     "api/[...path].js": {
       "maxDuration": 30,
       "memory": 1024,
