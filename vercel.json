@@ -1,9 +1,9 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "installCommand": "npm install",
-  "buildCommand": "npm run build --workspace web",
-  "outputDirectory": "web/dist",
-  "framework": "vite",
+  "buildCommand": "npm run build --workspace web && rm -rf dist && cp -R web/dist dist",
+  "outputDirectory": "dist",
+  "framework": null,
   "rewrites": [
     { "source": "/webhooks/:path*", "destination": "/api/webhooks/:path*" },
     { "source": "/health", "destination": "/api/health" }
