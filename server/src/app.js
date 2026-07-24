@@ -16,6 +16,7 @@ dotenv.config({
 
 export const app = express();
 app.use(express.json({ limit: '15mb' }));
+app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 
 // On Vercel the function is mounted under /api, so accept both prefixes.
 const WH = ['/webhooks', '/api/webhooks'];
@@ -24,6 +25,15 @@ const ADMIN = ['/admin', '/api/admin'];
 
 app.get(HEALTH, (_req, res) => res.json({ ok: true, runtime: process.env.VERCEL ? 'vercel' : 'node' }));
 
+function extractWebhookSecret(req) {
+  const header = req.get('x-webhook-secret');
+  if (header) return header;
+  if (req.query.secret) return String(req.query.secret);
+  const auth = req.get('authorization') || '';
+  if (auth.toLowerCase().startsWith('bearer ')) return auth.slice(7).trim();
+  return null;
+}
+
 /** Resolve org + validate per-org (or legacy global) webhook secret. */
 async function orgWebhookGate(req, res, next) {
   try {
@@ -31,7 +41,7 @@ async function orgWebhookGate(req, res, next) {
     if (!resolved) {
       return res.status(404).json({ ok: false, error: 'unknown or inactive org' });
     }
-    const provided = req.get('x-webhook-secret') ?? req.query.secret;
+    const provided = extractWebhookSecret(req);
     if (!resolved.webhookSecret) {
       console.warn(`org ${resolved.org.slug}: no webhook secret configured`);
       return res.status(503).json({ ok: false, error: 'webhook secret not configured for org' });

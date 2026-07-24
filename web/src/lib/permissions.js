@@ -13,12 +13,21 @@ export const PAGE_ACCESS = {
   dashboard: ['viewer', 'rep', 'manager', 'org_admin', 'platform_admin'],
   performance: ['viewer', 'rep', 'manager', 'org_admin', 'platform_admin'],
   commissions: ['manager', 'org_admin', 'platform_admin'],
-  'overdue-pcfs': ['rep', 'manager', 'org_admin', 'platform_admin'],
+  'overdue-pcfs': ['manager', 'org_admin', 'platform_admin'],
   'post-call': ['rep', 'manager', 'org_admin', 'platform_admin'],
   matches: ['manager', 'org_admin', 'platform_admin'],
   events: ['manager', 'org_admin', 'platform_admin'],
-  entity: ['viewer', 'rep', 'manager', 'org_admin', 'platform_admin'],
+  'cash-reconcile': ['manager', 'org_admin', 'platform_admin'],
+  entity: ['viewer', 'manager', 'org_admin', 'platform_admin'],
   admin: ['platform_admin'],
+};
+
+/** Friendly labels for membership role dropdowns. */
+export const ROLE_LABELS = {
+  org_admin: 'Org admin',
+  manager: 'Manager',
+  rep: 'Sales rep',
+  viewer: 'Viewer',
 };
 
 export function canAccessPage(role, page) {

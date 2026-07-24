@@ -1,0 +1,14 @@
+{
+  "type": "ContactCreate",
+  "locationId": "loc_abc123",
+  "contact": {
+    "id": "contact_xyz789",
+    "email": "ada@example.com",
+    "firstName": "Ada",
+    "lastName": "Lovelace",
+    "phone": "+15551234567",
+    "tags": ["opt-in"]
+  },
+  "workflow": { "id": "wf_1", "name": "Form Submitted → Ops Hub" },
+  "formName": "VSL Opt-in"
+}

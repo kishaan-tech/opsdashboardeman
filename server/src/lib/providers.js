@@ -1,6 +1,6 @@
 // Shared provider catalog (ids, labels, channels).
 
-export const FORMS_PROVIDERS = ['typeform', 'iclosed'];
+export const FORMS_PROVIDERS = ['typeform', 'iclosed', 'ghl', 'custom', 'webinarjam'];
 export const BOOKINGS_PROVIDERS = ['calendly', 'iclosed'];
 export const PAYMENTS_PROVIDERS = ['whop', 'fanbasis'];
 
@@ -8,6 +8,9 @@ export const PROVIDER_META = {
   typeform: { id: 'typeform', label: 'Typeform', channel: 'forms' },
   calendly: { id: 'calendly', label: 'Calendly', channel: 'bookings' },
   iclosed: { id: 'iclosed', label: 'iClosed', channel: 'scheduler' },
+  ghl: { id: 'ghl', label: 'GoHighLevel', channel: 'forms' },
+  custom: { id: 'custom', label: 'Custom form', channel: 'forms' },
+  webinarjam: { id: 'webinarjam', label: 'WebinarJam', channel: 'forms' },
   whop: { id: 'whop', label: 'Whop', channel: 'payments' },
   fanbasis: { id: 'fanbasis', label: 'Fanbasis', channel: 'payments' },
 };

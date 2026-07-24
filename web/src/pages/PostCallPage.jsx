@@ -292,7 +292,7 @@ export default function PostCallPage({ bookingId: bookingIdProp }) {
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="block">
-                  <span className="mb-1.5 block text-sm font-medium">Cash collected (at close)</span>
+                  <span className="mb-1.5 block text-sm font-medium">Cash collected (from payments)</span>
                   <p className="mb-1.5 text-xs text-mute">(if no close type 0)</p>
                   <input
                     type="number"

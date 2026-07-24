@@ -27,7 +27,7 @@ on conflict (org_id, user_id) do nothing;
 
 1. Sign in → **Admin portal** (`#/admin`) → **Create org** (pick a short slug, e.g. `acme`).
 2. On the org detail page, set **Providers** (multi-select — a client can enable several per channel):
-   - Forms: `typeform`, `iclosed`
+   - Forms: `typeform`, `iclosed`, `ghl`, `custom`, `webinarjam`
    - Bookings: `calendly`, `iclosed`
    - Payments: `whop`, `fanbasis` (each selected processor can set closed / cash)
 3. Copy the env var names shown.
@@ -49,6 +49,9 @@ Hyphens in the slug become underscores (`acme-co` → `ORG_ACME_CO_…`).
 7b. **(Optional) Backfill CSV** — Admin → org → Import CSV exports: Typeform → leads, Calendly → bookings, Whop → payments.
 8. Point vendor webhooks at the URLs shown for the selected providers, e.g.:
    - Typeform: `POST /api/webhooks/<slug>/forms?source=typeform&secret=…`
+   - GHL: `POST /api/webhooks/<slug>/forms?source=ghl&secret=…` (workflow Webhook on Form Submitted; Bearer token also OK)
+   - Custom form: `POST /api/webhooks/<slug>/forms?source=custom&secret=…` (JSON with `email`, optional name/phone/form_name)
+   - WebinarJam: `POST /api/webhooks/<slug>/forms?source=webinarjam&secret=…` (Integrations → Custom Webhook)
    - Calendly: `POST /api/webhooks/<slug>/bookings?source=calendly&secret=…`
    - Whop: `POST /api/webhooks/<slug>/payments?source=whop&secret=…`
    - Fanbasis: `POST /api/webhooks/<slug>/payments?source=fanbasis&secret=…`
@@ -73,7 +76,7 @@ Also accepts the legacy globals: `WEBHOOK_SECRET`, `CALENDLY_API_KEY`, `TYPEFORM
 | platform_admin | All orgs, admin portal, provider selection |
 | org_admin | Full org data, team |
 | manager | Dashboards, commissions, matches, events, edit |
-| rep | Own bookings (when linked), PCF, performance |
+| rep (Sales rep) | Dashboard, Performance, Post-call form only (own bookings when linked) |
 | viewer | Read-only dashboards/tables |
 
 `sales_reps.role` (setter/closer) is a **job title**, not an app permission.

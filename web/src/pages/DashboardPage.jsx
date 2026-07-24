@@ -3,8 +3,7 @@ import { supabase } from '../lib/supabase.js';
 import { useOrg, scopeToOrg } from '../lib/org.jsx';
 
 // KPI dashboard: headline numbers computed live from bookings + transactions,
-// scoped by the date range picker. All aggregation happens client-side —
-// volumes are tiny and it keeps the filter instant.
+// scoped by the date range picker. Cash collected === Σ transactions.amount.
 
 const PRESETS = [
   { key: 'all', label: 'All time' },
@@ -14,6 +13,8 @@ const PRESETS = [
   { key: '90d', label: '90 days' },
   { key: 'month', label: 'This month' },
 ];
+
+const SUCCESS = new Set(['succeeded', 'paid', 'completed', 'complete', 'success', 'active']);
 
 function rangeFor(preset, customFrom, customTo) {
   const now = new Date();
@@ -31,6 +32,18 @@ function rangeFor(preset, customFrom, customTo) {
     ];
     default: return [null, null];
   }
+}
+
+function isSuccessTx(t) {
+  if (!t.status) return Number(t.amount) > 0;
+  return SUCCESS.has(String(t.status).toLowerCase());
+}
+
+function weekKeyFromDate(value) {
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return null;
+  const monday = new Date(d.getFullYear(), d.getMonth(), d.getDate() - ((d.getDay() + 6) % 7));
+  return monday.toISOString().slice(0, 10);
 }
 
 export default function DashboardPage() {
@@ -54,11 +67,14 @@ export default function DashboardPage() {
     setError(null);
     let bq = scopeToOrg(
       supabase.from('bookings')
-        .select('start_time, showed_up, closed, cash_collected, revenue_generated')
+        .select('id, start_time, showed_up, closed, cash_collected, revenue_generated')
         .not('start_time', 'is', null),
       activeOrgId,
     );
-    let tq = scopeToOrg(supabase.from('transactions').select('date, amount'), activeOrgId);
+    let tq = scopeToOrg(
+      supabase.from('transactions').select('id, date, amount, status'),
+      activeOrgId,
+    );
     if (from) { bq = bq.gte('start_time', from.toISOString()); tq = tq.gte('date', from.toISOString().slice(0, 10)); }
     if (to)   { bq = bq.lte('start_time', to.toISOString());   tq = tq.lte('date', to.toISOString().slice(0, 10)); }
     const [b, t] = await Promise.all([bq, tq]);
@@ -69,6 +85,11 @@ export default function DashboardPage() {
 
   useEffect(() => { load(); }, [load]);
 
+  const successTx = useMemo(
+    () => (transactions || []).filter((t) => isSuccessTx(t) && Number(t.amount) > 0),
+    [transactions],
+  );
+
   const m = useMemo(() => {
     const total = bookings.length;
     const shows = bookings.filter((b) => b.showed_up).length;
@@ -78,28 +99,33 @@ export default function DashboardPage() {
       total, shows, closes,
       showRate: total ? (100 * shows) / total : null,
       closeRate: shows ? (100 * closes) / shows : null,
-      cash: sum(bookings, 'cash_collected'),
+      // Cash collected is defined as Σ successful transactions (always matches).
+      cash: sum(successTx, 'amount'),
       revenue: sum(bookings, 'revenue_generated'),
-      transactionTotal: sum(transactions, 'amount'),
     };
-  }, [bookings, transactions]);
+  }, [bookings, successTx]);
 
   const weekly = useMemo(() => {
     const byWeek = new Map();
     for (const b of bookings) {
-      const d = new Date(b.start_time);
-      const monday = new Date(d.getFullYear(), d.getMonth(), d.getDate() - ((d.getDay() + 6) % 7));
-      const key = monday.toISOString().slice(0, 10);
+      const key = weekKeyFromDate(b.start_time);
+      if (!key) continue;
       const w = byWeek.get(key) ?? { week: key, total: 0, shows: 0, closes: 0, cash: 0, revenue: 0 };
       w.total++;
       if (b.showed_up) w.shows++;
       if (b.closed) w.closes++;
-      w.cash += Number(b.cash_collected) || 0;
       w.revenue += Number(b.revenue_generated) || 0;
       byWeek.set(key, w);
     }
+    for (const t of successTx) {
+      const key = weekKeyFromDate(t.date ? `${t.date}T12:00:00` : null);
+      if (!key) continue;
+      const w = byWeek.get(key) ?? { week: key, total: 0, shows: 0, closes: 0, cash: 0, revenue: 0 };
+      w.cash += Number(t.amount) || 0;
+      byWeek.set(key, w);
+    }
     return [...byWeek.values()].sort((a, b) => b.week.localeCompare(a.week));
-  }, [bookings]);
+  }, [bookings, successTx]);
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
@@ -145,13 +171,17 @@ export default function DashboardPage() {
           </div>
         )}
 
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-6">
-          <Stat label="Cash collected" value={money(m.cash)} tone="brand" />
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-5">
+          <Stat
+            label="Cash collected"
+            value={money(m.cash)}
+            detail={`${successTx.length} payments · same as transactions`}
+            tone="brand"
+          />
           <Stat label="Bookings" value={m.total.toLocaleString()} tone="teal" />
           <Stat label="Show rate" value={pct(m.showRate)} detail={`${m.shows} of ${m.total} showed`} tone="ok" />
           <Stat label="Close rate" value={pct(m.closeRate)} detail={`${m.closes} of ${m.shows} shows closed`} tone="coral" />
           <Stat label="Revenue generated" value={money(m.revenue)} tone="brand" />
-          <Stat label="Transactions" value={money(m.transactionTotal)} detail={`${transactions.length} payments`} tone="teal" />
         </div>
 
         <section className="overflow-hidden rounded-lg border border-line-soft bg-panel">
@@ -159,7 +189,7 @@ export default function DashboardPage() {
             Weekly breakdown
           </p>
           {weekly.length === 0 ? (
-            <p className="px-4 py-8 text-sm text-mute">No bookings in this range.</p>
+            <p className="px-4 py-8 text-sm text-mute">No bookings or payments in this range.</p>
           ) : (
             <table className="w-full text-sm">
               <thead className="text-left text-[11px] uppercase tracking-wide text-mute">

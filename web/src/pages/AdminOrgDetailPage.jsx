@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { adminApi } from '../lib/adminApi.js';
 import { ProviderIcon, PROVIDER_LABELS } from '../components/ProviderIcon.jsx';
 
+import { ROLE_LABELS } from '../lib/permissions.js';
+
 const ROLES = ['org_admin', 'manager', 'rep', 'viewer'];
 
 function asList(v, fallback) {
@@ -342,7 +344,7 @@ export default function AdminOrgDetailPage({ orgId }) {
               value={inviteRole}
               onChange={(e) => setInviteRole(e.target.value)}
             >
-              {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
+              {ROLES.map((r) => <option key={r} value={r}>{ROLE_LABELS[r] || r}</option>)}
             </select>
             <button type="submit" className="rounded-md bg-brand px-4 py-2 text-sm font-medium text-white">
               Add member
@@ -377,7 +379,7 @@ export default function AdminOrgDetailPage({ orgId }) {
                   value={m.role}
                   onChange={(e) => changeRole(m.id, e.target.value)}
                 >
-                  {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
+                  {ROLES.map((r) => <option key={r} value={r}>{ROLE_LABELS[r] || r}</option>)}
                 </select>
                 <button
                   type="button"

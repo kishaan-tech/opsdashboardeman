@@ -125,6 +125,30 @@ export function orgWebhookUrlTemplates(slug, providers = {}) {
       path: `/api/webhooks/${slug}/forms?source=typeform&secret=…`,
     });
   }
+  if (forms.includes('ghl')) {
+    urls.push({
+      channel: 'forms',
+      provider: 'ghl',
+      path: `/api/webhooks/${slug}/forms?source=ghl&secret=…`,
+      note: 'GHL workflow → Webhook (Form Submitted). Also accepts Bearer / x-webhook-secret.',
+    });
+  }
+  if (forms.includes('custom')) {
+    urls.push({
+      channel: 'forms',
+      provider: 'custom',
+      path: `/api/webhooks/${slug}/forms?source=custom&secret=…`,
+      note: 'Any custom form: JSON with email (+ optional name, phone, form_name, submission_id)',
+    });
+  }
+  if (forms.includes('webinarjam')) {
+    urls.push({
+      channel: 'forms',
+      provider: 'webinarjam',
+      path: `/api/webhooks/${slug}/forms?source=webinarjam&secret=…`,
+      note: 'WebinarJam/EverWebinar Custom Webhook (registration → lead)',
+    });
+  }
   if (bookings.includes('calendly')) {
     urls.push({
       channel: 'bookings',

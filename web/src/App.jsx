@@ -4,6 +4,7 @@ import config from './config/entities.json';
 import EntityPage from './pages/EntityPage.jsx';
 import EventsPage from './pages/EventsPage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
+import CashReconcilePage from './pages/CashReconcilePage.jsx';
 import MatchesPage from './pages/MatchesPage.jsx';
 import PostCallPage from './pages/PostCallPage.jsx';
 import PerformancePage from './pages/PerformancePage.jsx';
@@ -140,46 +141,72 @@ function AuthedShell({ session }) {
         )}
 
         <nav className="flex-1 space-y-0.5 overflow-y-auto px-2 py-3">
-          <NavSection label="Overview" />
-          {canAccessPage(role, 'dashboard') && (
-            <NavLink href="#/dashboard" active={route.page === 'dashboard'}>Dashboard</NavLink>
-          )}
-          {canAccessPage(role, 'performance') && (
-            <NavLink href="#/performance" active={route.page === 'performance'}>Performance</NavLink>
-          )}
-          {canAccessPage(role, 'commissions') && (
-            <NavLink href="#/commissions" active={route.page === 'commissions'}>Commissions</NavLink>
-          )}
-          {canAccessPage(role, 'overdue-pcfs') && (
-            <NavLink
-              href="#/overdue-pcfs"
-              active={route.page === 'overdue-pcfs'}
-              badge={overdueCount}
-            >
-              Overdue PCFs
-            </NavLink>
+          {(canAccessPage(role, 'dashboard')
+            || canAccessPage(role, 'performance')
+            || canAccessPage(role, 'commissions')
+            || canAccessPage(role, 'overdue-pcfs')) && (
+            <>
+              <NavSection label="Overview" />
+              {canAccessPage(role, 'dashboard') && (
+                <NavLink href="#/dashboard" active={route.page === 'dashboard'}>Dashboard</NavLink>
+              )}
+              {canAccessPage(role, 'performance') && (
+                <NavLink href="#/performance" active={route.page === 'performance'}>Performance</NavLink>
+              )}
+              {canAccessPage(role, 'commissions') && (
+                <NavLink href="#/commissions" active={route.page === 'commissions'}>Commissions</NavLink>
+              )}
+              {canAccessPage(role, 'overdue-pcfs') && (
+                <NavLink
+                  href="#/overdue-pcfs"
+                  active={route.page === 'overdue-pcfs'}
+                  badge={overdueCount}
+                >
+                  Overdue PCFs
+                </NavLink>
+              )}
+            </>
           )}
 
-          <NavSection label="Data" />
-          {canAccessPage(role, 'entity') && config.entities.map((e) => (
-            <NavLink
-              key={e.table}
-              href={`#/entity/${e.table}`}
-              active={route.page === 'entity' && entity?.table === e.table}
-            >
-              {e.label}
-            </NavLink>
-          ))}
+          {canAccessPage(role, 'entity') && (
+            <>
+              <NavSection label="Data" />
+              {config.entities.map((e) => (
+                <NavLink
+                  key={e.table}
+                  href={`#/entity/${e.table}`}
+                  active={route.page === 'entity' && entity?.table === e.table}
+                >
+                  {e.label}
+                </NavLink>
+              ))}
+            </>
+          )}
 
-          <NavSection label="Ops" />
           {canAccessPage(role, 'post-call') && (
-            <NavLink href="#/post-call" active={route.page === 'post-call'}>Post-call form</NavLink>
+            <>
+              <NavSection label="Sales rep hub" />
+              <NavLink href="#/post-call" active={route.page === 'post-call'}>Post-call form</NavLink>
+            </>
           )}
-          {canAccessPage(role, 'matches') && (
-            <NavLink href="#/matches" active={route.page === 'matches'}>Same person</NavLink>
-          )}
-          {canAccessPage(role, 'events') && (
-            <NavLink href="#/events" active={route.page === 'events'}>Events</NavLink>
+
+          {(canAccessPage(role, 'matches')
+            || canAccessPage(role, 'events')
+            || canAccessPage(role, 'cash-reconcile')) && (
+            <>
+              <NavSection label="Ops" />
+              {canAccessPage(role, 'matches') && (
+                <NavLink href="#/matches" active={route.page === 'matches'}>Same person</NavLink>
+              )}
+              {canAccessPage(role, 'events') && (
+                <NavLink href="#/events" active={route.page === 'events'}>Events</NavLink>
+              )}
+              {canAccessPage(role, 'cash-reconcile') && (
+                <NavLink href="#/cash-reconcile" active={route.page === 'cash-reconcile'}>
+                  Cash vs transactions
+                </NavLink>
+              )}
+            </>
           )}
 
           {isPlatformAdmin && (
@@ -247,6 +274,7 @@ function AuthedShell({ session }) {
             {allowed && route.page === 'post-call' && <PostCallPage bookingId={route.bookingId} />}
             {allowed && route.page === 'matches' && <MatchesPage />}
             {allowed && route.page === 'events' && <EventsPage />}
+            {allowed && route.page === 'cash-reconcile' && <CashReconcilePage />}
             {allowed && route.page === 'entity' && entity && (
               <EntityPage key={`${entity.table}-${activeOrgId}`} entity={entity} recordId={route.recordId} />
             )}

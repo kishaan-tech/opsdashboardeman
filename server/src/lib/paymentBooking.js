@@ -1,5 +1,6 @@
 // Attribute a successful payment onto a booking:
-//   cash_collected  = amount actually taken at close (not overwritten by renewals)
+//   cash_collected  = sum of all successful linked transaction amounts
+//                     (always matches Σ transactions for that booking)
 //   revenue_generated = total plan/deal price for subscriptions/renewals; else cash
 //   cash_contracted = same as revenue when we know a contracted total
 
@@ -40,9 +41,27 @@ export function paymentCashAndRevenue(data) {
   };
 }
 
+/** Sum successful payment amounts linked to a booking. */
+export async function sumBookingCashFromTransactions(bookingId) {
+  const { data: txs, error } = await supabase
+    .from('transactions')
+    .select('amount, status')
+    .eq('booking_id', bookingId);
+  if (error) throw new Error(error.message);
+  let sum = 0;
+  for (const t of txs || []) {
+    const n = Number(t.amount) || 0;
+    if (n <= 0) continue;
+    if (!t.status || isSuccessfulPayment(t.status) || /paid|success|complete|active/i.test(String(t.status))) {
+      sum += n;
+    }
+  }
+  return sum;
+}
+
 /**
  * Apply close / cash / revenue effects on a booking for one payment.
- * Renewals keep original cash_collected; revenue can rise to total price.
+ * cash_collected is always recomputed from linked transactions.
  */
 export async function applyPaymentToBooking(bookingId, data) {
   if (!bookingId) return;
@@ -67,15 +86,11 @@ export async function applyPaymentToBooking(bookingId, data) {
     isRenewal: data.is_renewal,
   });
 
-  const alreadyHasCash = booking.cash_collected != null && Number(booking.cash_collected) > 0;
+  const cashFromTx = await sumBookingCashFromTransactions(bookingId);
   const patch = {
     closed: true,
+    cash_collected: cashFromTx > 0 ? cashFromTx : (cash > 0 ? cash : booking.cash_collected),
   };
-
-  // Cash collected = money taken upon close (first successful charge only).
-  if (!alreadyHasCash && cash > 0) {
-    patch.cash_collected = cash;
-  }
 
   // Revenue = total subscription/deal price when known; never shrink existing.
   const prevRev = Number(booking.revenue_generated) || 0;
@@ -90,7 +105,7 @@ export async function applyPaymentToBooking(bookingId, data) {
   }
 
   if (isSub && !booking.payment_type) {
-    patch.payment_type = data.is_renewal ? 'subscription' : 'subscription';
+    patch.payment_type = 'subscription';
   } else if (
     !booking.payment_type
     && cash > 0

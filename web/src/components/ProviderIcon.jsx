@@ -53,6 +53,33 @@ export function ProviderIcon({ id, className = '' }) {
           />
         </svg>
       );
+    case 'ghl':
+      return (
+        <svg {...common}>
+          <rect width="24" height="24" rx="6" fill="#188BF6" />
+          <path d="M7 16V8h2.2v6.2H14V16H7z" fill="#fff" />
+        </svg>
+      );
+    case 'custom':
+      return (
+        <svg {...common}>
+          <rect width="24" height="24" rx="6" fill="#374151" />
+          <path
+            d="M8 9h8M8 12h8M8 15h5"
+            stroke="#E5E7EB"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            fill="none"
+          />
+        </svg>
+      );
+    case 'webinarjam':
+      return (
+        <svg {...common}>
+          <rect width="24" height="24" rx="6" fill="#FF5A5F" />
+          <path d="M9 8.5v7l7-3.5-7-3.5z" fill="#fff" />
+        </svg>
+      );
     default:
       return (
         <svg {...common}>
@@ -67,6 +94,9 @@ export const PROVIDER_LABELS = {
   typeform: 'Typeform',
   calendly: 'Calendly',
   iclosed: 'iClosed',
+  ghl: 'GoHighLevel',
+  custom: 'Custom form',
+  webinarjam: 'WebinarJam',
   whop: 'Whop',
   fanbasis: 'Fanbasis',
 };
