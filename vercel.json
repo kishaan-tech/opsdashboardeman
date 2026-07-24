@@ -7,7 +7,8 @@
   "rewrites": [
     { "source": "/webhooks/:path*", "destination": "/api/webhooks/:path*" },
     { "source": "/admin/:path*", "destination": "/api/admin/:path*" },
-    { "source": "/health", "destination": "/api/health" }
+    { "source": "/health", "destination": "/api/health" },
+    { "source": "/api/(.*)", "destination": "/api" }
   ],
   "functions": {
     "api/health.js": {
@@ -29,7 +30,7 @@
       "memory": 1024,
       "includeFiles": "server/**"
     },
-    "api/[...path].js": {
+    "api/index.js": {
       "maxDuration": 30,
       "memory": 1024,
       "includeFiles": "server/**"
